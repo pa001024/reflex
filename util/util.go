@@ -1,13 +1,12 @@
-package main
+package util
 
 import (
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"runtime"
-	// "strconv"
 	"path"
+	"runtime"
 	"strings"
 )
 

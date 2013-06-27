@@ -15,7 +15,7 @@
 			"type":"moegirlwiki",
 			"name":"wikitext",
 			"prefix":"#萌百更新#",
-			"suffix":" {{.UrlText}}"
+			"suffix":" 阅读更多: {{.UrlText}}"
 		}
 	],
 	"target":[

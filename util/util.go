@@ -15,7 +15,6 @@ var (
 )
 
 const (
-	NUM_ST    = "0123456789"
 	BASE62_ST = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
@@ -26,8 +25,7 @@ func init() {
 
 func ToInt64(src string) (rst int64) {
 	for _, v := range src {
-		a := int64(strings.IndexRune(NUM_ST, v))
-		rst = rst*10 + a
+		rst = rst*10 + int64(v-'0')
 	}
 	return
 }

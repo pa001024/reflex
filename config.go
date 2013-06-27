@@ -7,35 +7,30 @@ import (
 )
 
 type JobConfig struct {
-	Source []*JobSource `json:"source"`
-	Target []*JobTarget `json:"target"`
+	Source []*JobSource `json:"source"` // 源
+	Target []*JobTarget `json:"target"` // 目标
 }
 
 type JobSource struct {
-	Type      string `json:"type"`
-	Format    string `json:"format"`
-	Name      string `json:"name"`
-	Url       string `json:"url"`
-	EnablePic string `json:"enablepic"`
-	PicTag    string `json:"pictag"`
-	PicSize   []int  `json:"picsize"`
+	Type      string `json:"type"`      // 类型 source工厂ID 如[mediawiki,rss,atom]等
+	Format    string `json:"format"`    // encoding工厂ID 如[xml,json]
+	Name      string `json:"name"`      // 名字
+	Url       string `json:"url"`       // 资源地址
+	EnablePic string `json:"enablepic"` // 启用图片 如果target支持图片会一并发出
+	PicTag    string `json:"pictag"`    // 图片标签(CSS选择器) 一般为 img 亦或指定ID或class 使用 img.class#xxx 等
+	PicSize   []int  `json:"picsize"`   // 图片大小 [minX,maxX,minY,maxY] 不填表示不限制
+	Limit     string `json:"limit"`     // 发送频次 格式[次数/时间] 比如1/1为每分钟最多发送一次 超过的丢弃 (iron.io上无效)
 }
 
 type JobTarget struct {
-	Type   string             `json:"type"`
-	Name   string             `json:"name"`
-	Method []*JobTargetMethod `json:"method"`
-	// 微博部分
-	AppKey      string    `json:client_id`     // AppKey
-	AppSecret   string    `json:client_secret` // AppSecret
-	CallbackUrl string    `json:redirect_uri`  // 验证URL
-	Token       string    `json:access_token`  // OAuth2.0 验证码
-	ExpiresIn   time.Time `json:expires_in`    // 失效时间
+	Type   string             `json:"type"`   // 类型 target工厂ID 如[sina,qq,renren]等
+	Name   string             `json:"name"`   // 名字 不能跟别的target或source名字相同
+	Method []*JobTargetMethod `json:"method"` // 处理方法
 }
 
 type JobTargetMethod struct {
-	Action string   `json:"action"`
-	Source []string `json:"source"`
+	Action string   `json:"action"` // 动作 可选[update,upload]
+	Source []string `json:"source"` // 目标 填写相应source或target名字
 }
 
 func (this *JobConfig) Load(r io.Reader) (err error) {

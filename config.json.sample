@@ -10,13 +10,21 @@
 			"picsize":[100,100,800,600]
 		}
 	],
+	"filter":[
+		{
+			"type":"moegirlwiki",
+			"name":"wikitext",
+			"prefix":"#萌百更新#",
+			"suffix":" {{.UrlText}}"
+		}
+	],
 	"target":[
 		{
 			"type":"sina",
 			"name":"sina_master1",
 			"client_id":"1234567890",
 			"client_secret":"abcdefghijklmopqrstuvwxyz",
-			"redirect_uri":"1234567890",
+			"redirect_uri":"http://localhost/",
 			"access_token":"2.0xxxxxxxxxxxxxxxxxx",
 			"method":[
 				{
@@ -31,7 +39,7 @@
 			"name":"sina_slave1",
 			"client_id":"1234567890",
 			"client_secret":"abcdefghijklmopqrstuvwxyz",
-			"redirect_uri":"1234567890",
+			"redirect_uri":"http://localhost/",
 			"access_token":"2.0xxxxxxxxxxxxxxxxxx",
 			"method":[
 				{
@@ -46,7 +54,7 @@
 			"name":"roqq",
 			"client_id":"1234567890",
 			"client_secret":"abcdefghijklmopqrstuvwxyz",
-			"redirect_uri":"1234567890",
+			"redirect_uri":"http://localhost/",
 			"access_token":"2.0xxxxxxxxxxxxxxxxxx",
 			"method":[
 				{

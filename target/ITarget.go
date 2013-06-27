@@ -4,6 +4,10 @@ import (
 	"net/url"
 )
 
+type ITarget interface {
+	Send(content, picurl string) bool
+}
+
 // 微博API {{
 type IWeibo interface {
 	// TODO: 添加error
@@ -19,4 +23,6 @@ type IWeibo interface {
 type IStatus interface {
 	Url() (urlText string) // 获取对应网页URL
 }
-type IUser interface{}
+type IUser interface {
+	// Url() (urlText string) // 获取微博主页URL
+}

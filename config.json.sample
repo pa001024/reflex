@@ -4,7 +4,10 @@
 			"type":"atom",
 			"format":"xml",
 			"name":"wiki",
-			"url":"http://yoursite.com/atom.xml"
+			"url":"http://yoursite.com/atom.xml",
+			"enablepic":"true",
+			"pictag":"img[src]",
+			"picsize":[100,100,800,600]
 		}
 	],
 	"target":[
@@ -18,8 +21,7 @@
 			"method":[
 				{
 					"action":"update",
-					"picsource":"moegirlwiki",
-					"enablepic":"true"
+					"source":["wiki"],
 				}
 			]
 		},
@@ -33,7 +35,7 @@
 			"method":[
 				{
 					"action":"repost",
-					"repost_source":["sina_master1"]
+					"source":["sina_master1"]
 				}
 			]
 		},
@@ -47,8 +49,7 @@
 			"method":[
 				{
 					"action":"update",
-					"picsource":"moegirlwiki",
-					"enablepic":"true"
+					"source":["wiki"],
 				}
 			]
 		}

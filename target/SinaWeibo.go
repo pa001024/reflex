@@ -17,6 +17,7 @@ const (
 
 type SinaWeibo struct { // 新浪微博API 实现接口IWeibo
 	IWeibo
+
 	AppKey      string    `json:client_id`     // AppKey
 	AppSecret   string    `json:client_secret` // AppSecret
 	CallbackUrl string    `json:redirect_uri`  // 验证URL

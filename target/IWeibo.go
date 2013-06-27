@@ -20,16 +20,3 @@ type IStatus interface {
 	Url() (urlText string) // 获取对应网页URL
 }
 type IUser interface{}
-
-// TODO:
-// type Facebook struct {
-// 	IWeibo
-// }
-
-// type Twiter struct {
-// 	IWeibo
-// }
-
-// type Renren struct {
-// 	IWeibo
-// }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/pa001024/MoeCron/util"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -59,19 +60,19 @@ func (this *QQWeibo) AccessToken(code string) (token string) {
 			"redirect_uri":  {this.CallbackUrl}, // http://some/weibocb.php
 		})
 	if err != nil {
-		Log("Fail to AccessToken:", err)
+		util.Log("Fail to AccessToken:", err)
 		return
 	}
 
 	defer res.Body.Close()
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		Log("Fail to AccessToken:", err)
+		util.Log("Fail to AccessToken:", err)
 		return
 	}
 	body, _ := url.ParseQuery(string(b))
 	if body.Get("error") != "" || body.Get("access_token") == "" {
-		Log("Fail to AccessToken(Remote):", body.Get("error"))
+		util.Log("Fail to AccessToken(Remote):", body.Get("error"))
 		return
 	}
 	this.Token = body.Get("access_token")
@@ -87,17 +88,17 @@ func (this *QQWeibo) PostStatus(api string, args *url.Values) (rst *QQWeiboStatu
 	args.Set("oauth_consumer_key", this.AppKey)
 	args.Set("access_token", this.Token)
 	args.Set("openid", this.OpenID)
-	args.Set("clientip", IP)
+	args.Set("clientip", util.IP)
 	res, err := http.PostForm("https://open.t.qq.com/api/t/"+api, *args)
 	if err != nil {
-		Log("Error on call", api+":", err)
+		util.Log("Error on call", api+":", err)
 		return
 	}
 	defer res.Body.Close()
 	dst := &QQWeiboResult{}
 	json.NewDecoder(res.Body).Decode(dst)
 	if dst.ErrorCode != 0 {
-		Log("Error on call", api+"(Remote):", dst.ErrorCode, ":", dst.Error)
+		util.Log("Error on call", api+"(Remote):", dst.ErrorCode, ":", dst.Error)
 		return nil
 	}
 	rst = dst.Data
@@ -114,7 +115,7 @@ func (this *QQWeibo) Repost(status string, oriId int64) (rst *QQWeiboStatus) {
 	rst = this.PostStatus("re_add", &url.Values{
 		"format":  {"json"},
 		"content": {status},
-		"reid":    {ToString(oriId)},
+		"reid":    {util.ToString(oriId)},
 	})
 	return
 }
@@ -133,7 +134,7 @@ func (this *QQWeibo) Upload(status string, pic io.Reader) (rst *QQWeiboStatus) {
 	formdata.WriteField("oauth_consumer_key", this.AppKey)
 	formdata.WriteField("access_token", this.Token)
 	formdata.WriteField("openid", this.OpenID)
-	formdata.WriteField("clientip", IP)
+	formdata.WriteField("clientip", util.IP)
 
 	formdata.WriteField("format", "json")
 	formdata.WriteField("content", status)
@@ -143,14 +144,14 @@ func (this *QQWeibo) Upload(status string, pic io.Reader) (rst *QQWeiboStatus) {
 
 	res, err := http.Post("https://open.t.qq.com/api/t/add_pic", formdata.FormDataContentType(), &bpic)
 	if err != nil {
-		Log("Error on call upload :", err)
+		util.Log("Error on call upload :", err)
 		return
 	}
 	defer res.Body.Close()
 	dst := &QQWeiboResult{}
 	json.NewDecoder(res.Body).Decode(dst)
 	if dst.ErrorCode != 0 {
-		Log("Error on call upload (Remote):", dst.ErrorCode, ":", dst.Error)
+		util.Log("Error on call upload (Remote):", dst.ErrorCode, ":", dst.Error)
 		return nil
 	}
 	rst = dst.Data

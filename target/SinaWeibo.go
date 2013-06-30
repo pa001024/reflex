@@ -3,6 +3,7 @@ package target
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/pa001024/MoeCron/util"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -29,26 +30,26 @@ type SinaWeiboError struct { // 错误
 	ErrorCode string `json:"error_code"` // 错误代码
 	Error     string `json:"error"`      // 错误信息
 }
-type SinaSinaWeiboStatus struct { // 微博 实现接口IStatus
+type SinaWeiboStatus struct { // 微博 实现接口IStatus
 	IStatus
-	WeiboError
+	SinaWeiboError
 
-	CreatedAt       string               `json:"created_at"`                 // 创建时间
-	Id              int64                `json:"id"`                         // 微博ID
-	Mid             string               `json:"mid"`                        // 微博MID
-	Idstr           string               `json:"idstr"`                      // 字符串型微博ID
-	Text            string               `json:"text"`                       // 微博内容
-	Source          string               `json:"source"`                     // 微博来源
-	Favorited       bool                 `json:"favorited"`                  // 是否已收藏
-	Truncated       bool                 `json:"truncated"`                  // 是否被截断
-	ThumbnailPic    string               `json:"thumbnail_pic"`              // 图片
-	BmiddlePic      string               `json:"bmiddle_pic"`                // 图片
-	OriginalPic     string               `json:"original_pic"`               // 图片
-	User            *SinaWeiboUser       `json:"user,omitempty"`             // PO主
-	RetweetedStatus *SinaSinaWeiboStatus `json:"retweeted_status,omitempty"` // 被转发微博信息
-	RepostsCount    int                  `json:"reposts_count"`              // 转发数
-	CommentsCount   int                  `json:"comments_count"`             // 评论数
-	AttitudesCount  int                  `json:"attitudes_count"`            // 表态数
+	CreatedAt       string           `json:"created_at"`                 // 创建时间
+	Id              int64            `json:"id"`                         // 微博ID
+	Mid             string           `json:"mid"`                        // 微博MID
+	Idstr           string           `json:"idstr"`                      // 字符串型微博ID
+	Text            string           `json:"text"`                       // 微博内容
+	Source          string           `json:"source"`                     // 微博来源
+	Favorited       bool             `json:"favorited"`                  // 是否已收藏
+	Truncated       bool             `json:"truncated"`                  // 是否被截断
+	ThumbnailPic    string           `json:"thumbnail_pic"`              // 图片
+	BmiddlePic      string           `json:"bmiddle_pic"`                // 图片
+	OriginalPic     string           `json:"original_pic"`               // 图片
+	User            *SinaWeiboUser   `json:"user,omitempty"`             // PO主
+	RetweetedStatus *SinaWeiboStatus `json:"retweeted_status,omitempty"` // 被转发微博信息
+	RepostsCount    int              `json:"reposts_count"`              // 转发数
+	CommentsCount   int              `json:"comments_count"`             // 评论数
+	AttitudesCount  int              `json:"attitudes_count"`            // 表态数
 	// Mlevel              int64         `json:"mlevel"`                     // 官方未支持
 	// InReplyToStatusId   string        `json:"in_reply_to_status_id"`      // 官方未支持
 	// InReplyToUserId     string        `json:"in_reply_to_user_id"`        // 官方未支持
@@ -57,59 +58,59 @@ type SinaSinaWeiboStatus struct { // 微博 实现接口IStatus
 }
 type SinaWeiboUser struct { // 用户
 	IUser
-	// WeiboError
+	// SinaWeiboError
 
-	Id               int64                `json:"id"`                 // UID
-	Idstr            string               `json:"idstr"`              // 字符串型UID
-	Screen_name      string               `json:"screen_name"`        // 昵称
-	Name             string               `json:"name"`               // 友好显示名称
-	Province         string               `json:"province"`           // 所在省[代码]
-	City             string               `json:"city"`               // 所在城市[代码]
-	Location         string               `json:"location"`           // 所在地
-	Description      string               `json:"description"`        // 描述
-	Url              string               `json:"url"`                // 主页地址
-	ProfileImageUrl  string               `json:"profile_image_url"`  // 头像
-	ProfileUrl       string               `json:"profile_url"`        // 统一URL地址
-	Domain           string               `json:"domain"`             // 个性域名
-	Weihao           string               `json:"weihao"`             // 微号
-	Gender           string               `json:"gender"`             // 性别
-	FollowersCount   int                  `json:"followers_count"`    // 粉丝数量
-	FriendsCount     int                  `json:"friends_count"`      // 好友数量
-	StatusesCount    int                  `json:"statuses_count"`     // 微博数量
-	FavouritesCount  int                  `json:"favourites_count"`   // 关注数量
-	CreatedAt        string               `json:"created_at"`         // 注册时间
-	Following        bool                 `json:"following"`          // 是否关注
-	AllowAllActMsg   bool                 `json:"allow_all_act_msg"`  // 允许所有动态
-	AllowAllComment  bool                 `json:"allow_all_comment"`  // 允许所有评论
-	Geo_enabled      bool                 `json:"geo_enabled"`        // 区域
-	Verified         bool                 `json:"verified"`           // 验证
-	VerifiedType     int                  `json:"verified_type"`      // 验证类型
-	VerifiedReason   string               `json:"verified_reason"`    // 验证信息
-	Remark           string               `json:"remark"`             // 备注
-	AvatarLarge      string               `json:"avatar_large"`       // 头像
-	FollowMe         bool                 `json:"follow_me"`          // 关注我
-	OnlineStatus     int                  `json:"online_status"`      // 在线状态
-	BiFollowersCount int                  `json:"bi_followers_count"` // 互粉数
-	Lang             string               `json:"lang"`               // 语言
-	Status           *SinaSinaWeiboStatus `json:"status,omitempty"`   // 微博
+	Id               int64            `json:"id"`                 // UID
+	Idstr            string           `json:"idstr"`              // 字符串型UID
+	Screen_name      string           `json:"screen_name"`        // 昵称
+	Name             string           `json:"name"`               // 友好显示名称
+	Province         string           `json:"province"`           // 所在省[代码]
+	City             string           `json:"city"`               // 所在城市[代码]
+	Location         string           `json:"location"`           // 所在地
+	Description      string           `json:"description"`        // 描述
+	Url              string           `json:"url"`                // 主页地址
+	ProfileImageUrl  string           `json:"profile_image_url"`  // 头像
+	ProfileUrl       string           `json:"profile_url"`        // 统一URL地址
+	Domain           string           `json:"domain"`             // 个性域名
+	Weihao           string           `json:"weihao"`             // 微号
+	Gender           string           `json:"gender"`             // 性别
+	FollowersCount   int              `json:"followers_count"`    // 粉丝数量
+	FriendsCount     int              `json:"friends_count"`      // 好友数量
+	StatusesCount    int              `json:"statuses_count"`     // 微博数量
+	FavouritesCount  int              `json:"favourites_count"`   // 关注数量
+	CreatedAt        string           `json:"created_at"`         // 注册时间
+	Following        bool             `json:"following"`          // 是否关注
+	AllowAllActMsg   bool             `json:"allow_all_act_msg"`  // 允许所有动态
+	AllowAllComment  bool             `json:"allow_all_comment"`  // 允许所有评论
+	Geo_enabled      bool             `json:"geo_enabled"`        // 区域
+	Verified         bool             `json:"verified"`           // 验证
+	VerifiedType     int              `json:"verified_type"`      // 验证类型
+	VerifiedReason   string           `json:"verified_reason"`    // 验证信息
+	Remark           string           `json:"remark"`             // 备注
+	AvatarLarge      string           `json:"avatar_large"`       // 头像
+	FollowMe         bool             `json:"follow_me"`          // 关注我
+	OnlineStatus     int              `json:"online_status"`      // 在线状态
+	BiFollowersCount int              `json:"bi_followers_count"` // 互粉数
+	Lang             string           `json:"lang"`               // 语言
+	Status           *SinaWeiboStatus `json:"status,omitempty"`   // 微博
 }
 type SinaWeiboComment struct { // 评论
-	CreatedAt    string               `json:"created_at"`
-	Id           int64                `json:"id"`
-	Text         string               `json:"text"`
-	Source       string               `json:"source"`
-	User         *SinaWeiboUser       `json:"user,omitempty"`
-	Mid          string               `json:"mid"`
-	Idstr        string               `json:"idstr"`
-	Status       *SinaSinaWeiboStatus `json:"status,omitempty"`
-	ReplyComment *SinaWeiboComment    `json:"reply_comment,omitempty"`
+	CreatedAt    string            `json:"created_at"`
+	Id           int64             `json:"id"`
+	Text         string            `json:"text"`
+	Source       string            `json:"source"`
+	User         *SinaWeiboUser    `json:"user,omitempty"`
+	Mid          string            `json:"mid"`
+	Idstr        string            `json:"idstr"`
+	Status       *SinaWeiboStatus  `json:"status,omitempty"`
+	ReplyComment *SinaWeiboComment `json:"reply_comment,omitempty"`
 }
 type SinaWeiboReposts struct { // 转发
-	Reposts        []*SinaSinaWeiboStatus `json:"reposts"`
-	Hasvisible     bool                   `json:"hasvisible"`
-	PreviousCursor int                    `json:"previous_cursor"`
-	NextCursor     int                    `json:"next_cursor"`
-	TotalNumber    int                    `json:"total_number"`
+	Reposts        []*SinaWeiboStatus `json:"reposts"`
+	Hasvisible     bool               `json:"hasvisible"`
+	PreviousCursor int                `json:"previous_cursor"`
+	NextCursor     int                `json:"next_cursor"`
+	TotalNumber    int                `json:"total_number"`
 }
 type SinaWeiboPrivacy struct { // 隐私设置
 	Comment  int `json:"comment"`  // 是否可以评论我的微博，0：所有人、1：关注的人、2：可信用户
@@ -179,7 +180,7 @@ func (this *SinaWeibo) AccessToken(code string) (token string) {
 			"redirect_uri":  {this.CallbackUrl}, // http://some/weibocb.php
 		})
 	if err != nil {
-		Log("Fail to AccessToken:", err)
+		util.Log("Fail to AccessToken:", err)
 		return
 	}
 
@@ -187,7 +188,7 @@ func (this *SinaWeibo) AccessToken(code string) (token string) {
 	var body map[string]interface{}
 	json.NewDecoder(res.Body).Decode(&body)
 	if body["error"] != nil || body["access_token"] == nil {
-		Log("Fail to AccessToken(Remote):", body["error"])
+		util.Log("Fail to AccessToken(Remote):", body["error"])
 		return
 	}
 	this.Token = body["access_token"].(string)
@@ -196,18 +197,18 @@ func (this *SinaWeibo) AccessToken(code string) (token string) {
 	this.ExpiresIn = ex
 	return this.Token
 }
-func (this *SinaWeibo) PostStatus(api string, args *url.Values) (rst *SinaSinaWeiboStatus) {
+func (this *SinaWeibo) PostStatus(api string, args *url.Values) (rst *SinaWeiboStatus) {
 	args.Set("access_token", this.Token)
 	res, err := http.PostForm("https://api.weibo.com/2/statuses/"+api+".json", *args)
 	if err != nil {
-		Log("Error on call", api+":", err)
+		util.Log("Error on call", api+":", err)
 		return
 	}
 	defer res.Body.Close()
 	rst = &SinaWeiboStatus{}
 	json.NewDecoder(res.Body).Decode(rst)
 	if rst.ErrorCode != "" {
-		Log("Error on call", api+"(Remote):", rst.ErrorCode, ":", rst.Error, "\nOn:", rst.Request)
+		util.Log("Error on call", api+"(Remote):", rst.ErrorCode, ":", rst.Error, "\nOn:", rst.Request)
 		return nil
 	}
 	return
@@ -218,20 +219,20 @@ func (this *SinaWeibo) Update(status string) (rst *SinaWeiboStatus) {
 	})
 	return
 }
-func (this *SinaWeibo) Repost(status string, oriId int64) (rst *SinaSinaWeiboStatus) {
+func (this *SinaWeibo) Repost(status string, oriId int64) (rst *SinaWeiboStatus) {
 	rst = this.PostStatus("repost", &url.Values{
 		"status": {status},
-		"id":     {ToString(oriId)},
+		"id":     {util.ToString(oriId)},
 	})
 	return
 }
 func (this *SinaWeibo) Destroy(oriId int64) (rst *SinaWeiboStatus) {
 	rst = this.PostStatus("destroy", &url.Values{
-		"id": {ToString(oriId)},
+		"id": {util.ToString(oriId)},
 	})
 	return
 }
-func (this *SinaWeibo) Upload(status string, pic io.Reader) (rst *SinaSinaWeiboStatus) {
+func (this *SinaWeibo) Upload(status string, pic io.Reader) (rst *SinaWeiboStatus) {
 	// multipart/form-data
 	var bpic bytes.Buffer
 	formdata := multipart.NewWriter(&bpic)
@@ -243,26 +244,26 @@ func (this *SinaWeibo) Upload(status string, pic io.Reader) (rst *SinaSinaWeiboS
 
 	res, err := http.Post("https://api.weibo.com/2/statuses/upload.json", formdata.FormDataContentType(), &bpic)
 	if err != nil {
-		Log("Error on call upload :", err)
+		util.Log("Error on call upload :", err)
 		return
 	}
 	defer res.Body.Close()
 	rst = &SinaWeiboStatus{}
 	json.NewDecoder(res.Body).Decode(rst)
 	if rst.ErrorCode != "" {
-		Log("Error on call upload (Remote):", rst.ErrorCode, ":", rst.Error, "\nOn:", rst.Request)
+		util.Log("Error on call upload (Remote):", rst.ErrorCode, ":", rst.Error, "\nOn:", rst.Request)
 		return nil
 	}
 	return
 }
-func (this *SinaWeibo) UploadUrl(status string, urlText string) (rst *SinaSinaWeiboStatus) {
+func (this *SinaWeibo) UploadUrl(status string, urlText string) (rst *SinaWeiboStatus) {
 	rst = this.PostStatus("upload_url_text", &url.Values{
 		"status": {status},
 		"url":    {urlText},
 	})
 	return
 }
-func (this *SinaSinaWeiboStatus) Url() (urlText string) {
-	urlText = "http://weibo.com/" + this.User.Idstr + "/" + Base62Url(this.Mid)
+func (this *SinaWeiboStatus) Url() (urlText string) {
+	urlText = "http://weibo.com/" + this.User.Idstr + "/" + util.Base62Url(this.Mid)
 	return
 }

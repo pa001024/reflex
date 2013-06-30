@@ -1,8 +1,8 @@
 package target
 
 import (
-	"net/http"
-	"net/url"
+// "net/http"
+// "net/url"
 )
 
 const (

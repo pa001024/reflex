@@ -33,6 +33,7 @@ func (this *QQWeibo) Send(src *source.FeedInfo) bool {
 type QQWeibo struct { // 腾讯微博API 实现接口IWeibo
 	IWeibo
 	ITarget
+	Target
 
 	AppKey       string    `json:client_id`     // AppKey
 	AppSecret    string    `json:client_secret` // AppSecret

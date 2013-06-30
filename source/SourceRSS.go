@@ -7,14 +7,14 @@ import (
 
 // "format":"rss"
 type FeedRSS struct {
-	XMLName     xml.Name       `xml:"rss>channel"`
-	Id          string         `xml:"id"`
-	Title       string         `xml:"title"`
-	Updated     string         `xml:"lastBuildDate"`
-	Description string         `xml:"description"`
-	Generator   string         `xml:"generator"`
-	Language    string         `xml:"language"`
-	Item        []*FeedRSSItem `xml:"item"`
+	XMLName     xml.Name       `xml:"rss"`
+	Id          string         `xml:"channel>id"`
+	Title       string         `xml:"channel>title"`
+	Updated     string         `xml:"channel>lastBuildDate"`
+	Description string         `xml:"channel>description"`
+	Generator   string         `xml:"channel>generator"`
+	Language    string         `xml:"channel>language"`
+	Item        []*FeedRSSItem `xml:"channel>item"`
 }
 type FeedRSSItem struct {
 	Id          string `xml:"guid"`
@@ -31,5 +31,5 @@ type SourceRSS struct { // RSS 实现接口ISource
 	Source
 
 	FeedUrl    string    `json:"feed_url"` // http://www.mediawiki.org/wiki/Special:RecentChanges?feed=rss&namespace=0
-	LastUpdate time.Time `json:"lastupdate"`
+	LastUpdate time.Time `json:"-"`
 }

@@ -24,18 +24,23 @@ type SourceMediawiki struct { // Mediawiki 实现接口ISource
 	ISource
 	SourceRSS
 
-	FeedUrl    string    `json:"feed_url"` // http://www.mediawiki.org/wiki/Special:RecentChanges?feed=rss&namespace=0
-	APIUrl     string    `json:"api_url"`  // http://www.mediawiki.org/w/api.php
-	LastUpdate time.Time `json:"lastupdate"`
+	APIUrl string `json:"api_url"` // http://www.mediawiki.org/w/api.php
 }
 
 func (this *SourceMediawiki) Get() (rst []*FeedInfo) {
+	rst = make([]*FeedInfo, 0)
 	f := this.FetchFeed()
 	for _, v := range f.Item {
-		d, _ := time.Parse(time.RFC1123, v.Updated)
+		d, err := time.Parse(time.RFC1123, v.Updated)
+		if err != nil {
+			util.Log("Time Parse Fail", err)
+			continue
+		}
 		if d.Before(time.Now().Add(time.Duration(this.Interval) * -time.Second)) {
 			break
 		}
+		f := this.GetByFeedRSSItem(v)
+		rst = append(rst, f)
 	}
 	return
 }
@@ -43,7 +48,7 @@ func (this *SourceMediawiki) Get() (rst []*FeedInfo) {
 func (this *SourceMediawiki) FetchFeed() (rst *FeedRSS) {
 	res, err := http.Get(this.FeedUrl)
 	if err != nil {
-		util.Log("FetchFeed fail")
+		util.Log("FetchFeed Fail")
 	}
 	defer res.Body.Close()
 	rst = &FeedRSS{}
@@ -51,7 +56,18 @@ func (this *SourceMediawiki) FetchFeed() (rst *FeedRSS) {
 	return
 }
 
-func (this *SourceMediawiki) GetByName(name string) (rst *FeedInfo) {
+func (this *SourceMediawiki) GetByFeedRSSItem(v *FeedRSSItem) (rst *FeedInfo) {
+	rst = &FeedInfo{
+		Id:       v.Id,
+		SourceId: this.Name,
+		Title:    v.Title,
+		Author:   v.Author,
+		Content:  this.GetByName(v.Title),
+	}
+	return
+}
+
+func (this *SourceMediawiki) GetByName(name string) (rst string) {
 	res, err := http.Get(this.APIUrl + "?" + (url.Values{
 		"format": {"json"},
 		"action": {"query"},
@@ -60,10 +76,17 @@ func (this *SourceMediawiki) GetByName(name string) (rst *FeedInfo) {
 		"titles": {name},
 	}).Encode())
 	if err != nil {
-		util.Log("GetByName fail")
+		util.Log("Network Fetch Fail", err)
 	}
 	defer res.Body.Close()
-	rst = &FeedInfo{}
-	json.NewDecoder(res.Body).Decode(rst)
+	var v map[string]map[string]map[string]map[string][]map[string]interface{}
+	json.NewDecoder(res.Body).Decode(v)
+	for _, v1 := range v["query"]["pages"] {
+		rv := v1["revisions"]
+		if rv != nil && len(rv) > 0 {
+			rst = rv[0]["*"].(string)
+			break
+		}
+	}
 	return
 }

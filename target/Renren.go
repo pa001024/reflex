@@ -8,6 +8,8 @@ const (
 
 type Renren struct { // 人人网 API 实现接口IWeibo
 	// IWeibo 暂未实现
+	// ITarget
+	Target
 
 	AppKey      string `json:client_id`     // Consumer key
 	AppSecret   string `json:client_secret` // Consumer secret

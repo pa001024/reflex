@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	IP string
+	DEBUG = false
+	IP    string
 )
 
 const (
@@ -92,7 +93,6 @@ func CheckIP() (ip string, err error) {
 }
 
 func Log(args ...interface{}) {
-	const DEBUG = false
 	if DEBUG {
 		DebugLog(args...)
 	} else {

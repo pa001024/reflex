@@ -21,7 +21,7 @@ type TargetMethod struct {
 	Filter []string `json:"filter"` // 过滤器 从左到右依次管道
 }
 
-func New(b []byte) (rst ITarget) {
+func New(name string, b []byte) (rst ITarget) {
 	obj := &Target{}
 	err := json.Unmarshal(b, obj)
 	if err != nil {
@@ -33,10 +33,12 @@ func New(b []byte) (rst ITarget) {
 	case "sinaweibo":
 		rst = &SinaWeibo{}
 		json.Unmarshal(b, rst)
+		rst.(*SinaWeibo).Name = name
 		break
 	case "qqweibo":
 		rst = &QQWeibo{}
 		json.Unmarshal(b, rst)
+		rst.(*QQWeibo).Name = name
 		break
 	}
 	return

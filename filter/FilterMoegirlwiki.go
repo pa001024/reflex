@@ -7,6 +7,7 @@ import (
 
 type FilterMoegirlwiki struct { // 萌娘百科
 	IFilter
+	Filter
 }
 
 var (

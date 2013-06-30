@@ -7,11 +7,11 @@ import (
 )
 
 var (
-	conf *daemon.JobConfig
+	conf = &daemon.JobConfig{}
 )
 
 func main() {
-	conf = &daemon.JobConfig{}
+	util.DEBUG = true
 	r, err := os.Open("config.json")
 	if err != nil {
 		util.Log("Cound not Load config.json")

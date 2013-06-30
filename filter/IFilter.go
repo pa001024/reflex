@@ -15,7 +15,7 @@ type Filter struct {
 	Name string `json:"name"` // 名字 不能跟别的target或source名字相同
 }
 
-func New(b []byte) (rst IFilter) {
+func New(name string, b []byte) (rst IFilter) {
 	obj := &Filter{}
 	err := json.Unmarshal(b, obj)
 	if err != nil {
@@ -27,6 +27,7 @@ func New(b []byte) (rst IFilter) {
 	case "moegirlwiki":
 		rst = &FilterMoegirlwiki{}
 		json.Unmarshal(b, rst)
+		rst.(*FilterMoegirlwiki).Name = name
 		break
 		// case "rss":
 	}

@@ -29,5 +29,5 @@ type SourceAtom struct { // Atom 实现接口ISource
 	Source
 
 	FeedUrl    string    `json:"feed_url"` // http://www.mediawiki.org/wiki/Special:RecentChanges?feed=rss&namespace=0
-	LastUpdate time.Time `json:"lastupdate"`
+	LastUpdate time.Time `json:"-"`
 }

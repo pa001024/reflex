@@ -1,7 +1,9 @@
 package filter
 
 import (
+	"encoding/json"
 	"github.com/pa001024/MoeCron/source"
+	"github.com/pa001024/MoeCron/util"
 )
 
 type IFilter interface {
@@ -11,6 +13,22 @@ type IFilter interface {
 type Filter struct {
 	Type string `json:"type"` // 类型 filter工厂ID 如[moegirlwiki,简繁转换]等
 	Name string `json:"name"` // 名字 不能跟别的target或source名字相同
+}
 
-	Impl IFilter `json:"-"` // 具体实现
+func New(b []byte) (rst IFilter) {
+	obj := &Filter{}
+	err := json.Unmarshal(b, obj)
+	if err != nil {
+		util.Log("JSON Parse Error", err)
+		return
+	}
+	switch obj.Type {
+	default:
+	case "moegirlwiki":
+		rst = &FilterMoegirlwiki{}
+		json.Unmarshal(b, rst)
+		break
+		// case "rss":
+	}
+	return
 }

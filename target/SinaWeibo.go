@@ -3,6 +3,7 @@ package target
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/pa001024/MoeCron/source"
 	"github.com/pa001024/MoeCron/util"
 	"io"
 	"mime/multipart"
@@ -16,8 +17,20 @@ const (
 	TSINA_OAUTH_VERSION = "2.0"
 )
 
+func (this *SinaWeibo) Send(src *source.FeedInfo) bool {
+	if src.PicUrl != nil && len(src.PicUrl) > 0 {
+		this.UploadUrl(src.Content, src.PicUrl[0])
+		return true
+	} else {
+		this.Update(src.Content)
+		return true
+	}
+	return false
+}
+
 type SinaWeibo struct { // 新浪微博API 实现接口IWeibo
 	IWeibo
+	ITarget
 
 	AppKey      string    `json:client_id`     // AppKey
 	AppSecret   string    `json:client_secret` // AppSecret

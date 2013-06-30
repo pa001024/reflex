@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/pa001024/MoeCron/source"
 	"github.com/pa001024/MoeCron/util"
 	"io"
 	"io/ioutil"
@@ -18,8 +19,20 @@ const (
 	TQQ_OAUTH_VERSION = "2.a"
 )
 
+func (this *QQWeibo) Send(src *source.FeedInfo) bool {
+	if src.PicUrl != nil && len(src.PicUrl) > 0 {
+		this.UploadUrl(src.Content, src.PicUrl[0])
+		return true
+	} else {
+		this.Update(src.Content)
+		return true
+	}
+	return false
+}
+
 type QQWeibo struct { // 腾讯微博API 实现接口IWeibo
 	IWeibo
+	ITarget
 
 	AppKey       string    `json:client_id`     // AppKey
 	AppSecret    string    `json:client_secret` // AppSecret

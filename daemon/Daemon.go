@@ -10,13 +10,13 @@ var (
 
 type Daemon struct {
 	Config *JobConfig
-	C      chan *source.Source
+	C      chan []*source.Source
 }
 
 func NewDaemon(conf *JobConfig) (rst *Daemon) {
 	rst = &Daemon{
 		Config: conf,
-		C:      make(chan *source.Source),
+		C:      make(chan []*source.Source),
 	}
 	return
 }

@@ -28,20 +28,28 @@ type SourceMediawiki struct { // Mediawiki 实现接口ISource
 }
 
 func (this *SourceMediawiki) Get() (rst []*FeedInfo) {
-	rst = make([]*FeedInfo, 0)
 	f := this.FetchFeed()
+	if f == nil {
+		return
+	}
+	last := time.Now().Add(-time.Duration(this.Interval) * time.Second)
+	rst = make([]*FeedInfo, 0)
 	for _, v := range f.Item {
 		d, err := time.Parse(time.RFC1123, v.Updated)
 		if err != nil {
 			util.Log("Time Parse Fail", err)
 			continue
 		}
-		if d.Before(time.Now().Add(time.Duration(this.Interval) * -time.Second)) {
+		if d.Before(this.LastUpdate) {
 			break
+		}
+		if d.After(last) {
+			last = d
 		}
 		f := this.GetByFeedRSSItem(v)
 		rst = append(rst, f)
 	}
+	this.LastUpdate = last
 	return
 }
 

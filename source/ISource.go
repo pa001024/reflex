@@ -3,6 +3,7 @@ package source
 import (
 	"encoding/json"
 	"github.com/pa001024/MoeCron/util"
+	"time"
 )
 
 type ISource interface {
@@ -39,6 +40,7 @@ func New(name string, b []byte) (rst ISource) {
 		rst = &SourceMediawiki{}
 		json.Unmarshal(b, rst)
 		rst.(*SourceMediawiki).Name = name
+		rst.(*SourceMediawiki).LastUpdate = time.Now()
 		break
 		// case "rss":
 	}

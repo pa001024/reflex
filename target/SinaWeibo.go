@@ -33,11 +33,11 @@ type SinaWeibo struct { // 新浪微博API 实现接口IWeibo
 	ITarget
 	Target
 
-	AppKey      string    `json:client_id`     // AppKey
-	AppSecret   string    `json:client_secret` // AppSecret
-	CallbackUrl string    `json:redirect_uri`  // 验证URL
-	Token       string    `json:access_token`  // OAuth2.0 验证码
-	ExpiresIn   time.Time `json:expires_in`    // 失效时间
+	AppKey      string    `json:"client_id"`     // AppKey
+	AppSecret   string    `json:"client_secret"` // AppSecret
+	CallbackUrl string    `json:"redirect_uri"`  // 验证URL
+	Token       string    `json:"access_token"`  // OAuth2.0 验证码
+	ExpiresIn   time.Time `json:"expires_in"`    // 失效时间
 }
 type SinaWeiboError struct { // 错误
 	Request   string `json:"request"`    // 请求
@@ -211,7 +211,7 @@ func (this *SinaWeibo) AccessToken(code string) (token string) {
 	this.ExpiresIn = ex
 	return this.Token
 }
-func (this *SinaWeibo) PostStatus(api string, args *url.Values) (rst *SinaWeiboStatus) {
+func (this *SinaWeibo) PostStatus(api string, args *url.Values) (rst *SinaWeiboStatus, err error) {
 	args.Set("access_token", this.Token)
 	res, err := http.PostForm("https://api.weibo.com/2/statuses/"+api+".json", *args)
 	if err != nil {
@@ -223,30 +223,30 @@ func (this *SinaWeibo) PostStatus(api string, args *url.Values) (rst *SinaWeiboS
 	json.NewDecoder(res.Body).Decode(rst)
 	if rst.ErrorCode != "" {
 		util.Log("Error on call", api+"(Remote):", rst.ErrorCode, ":", rst.Error, "\nOn:", rst.Request)
-		return nil
+		return nil, RemoteError
 	}
 	return
 }
-func (this *SinaWeibo) Update(status string) (rst *SinaWeiboStatus) {
-	rst = this.PostStatus("update", &url.Values{
+func (this *SinaWeibo) Update(status string) (rst *SinaWeiboStatus, err error) {
+	rst, err = this.PostStatus("update", &url.Values{
 		"status": {status},
 	})
 	return
 }
-func (this *SinaWeibo) Repost(status string, oriId int64) (rst *SinaWeiboStatus) {
-	rst = this.PostStatus("repost", &url.Values{
+func (this *SinaWeibo) Repost(status string, oriId int64) (rst *SinaWeiboStatus, err error) {
+	rst, err = this.PostStatus("repost", &url.Values{
 		"status": {status},
 		"id":     {util.ToString(oriId)},
 	})
 	return
 }
-func (this *SinaWeibo) Destroy(oriId int64) (rst *SinaWeiboStatus) {
-	rst = this.PostStatus("destroy", &url.Values{
+func (this *SinaWeibo) Destroy(oriId int64) (rst *SinaWeiboStatus, err error) {
+	rst, err = this.PostStatus("destroy", &url.Values{
 		"id": {util.ToString(oriId)},
 	})
 	return
 }
-func (this *SinaWeibo) Upload(status string, pic io.Reader) (rst *SinaWeiboStatus) {
+func (this *SinaWeibo) Upload(status string, pic io.Reader) (rst *SinaWeiboStatus, err error) {
 	// multipart/form-data
 	var bpic bytes.Buffer
 	formdata := multipart.NewWriter(&bpic)
@@ -266,12 +266,12 @@ func (this *SinaWeibo) Upload(status string, pic io.Reader) (rst *SinaWeiboStatu
 	json.NewDecoder(res.Body).Decode(rst)
 	if rst.ErrorCode != "" {
 		util.Log("Error on call upload (Remote):", rst.ErrorCode, ":", rst.Error, "\nOn:", rst.Request)
-		return nil
+		return nil, RemoteError
 	}
 	return
 }
-func (this *SinaWeibo) UploadUrl(status string, urlText string) (rst *SinaWeiboStatus) {
-	rst = this.PostStatus("upload_url_text", &url.Values{
+func (this *SinaWeibo) UploadUrl(status string, urlText string) (rst *SinaWeiboStatus, err error) {
+	rst, err = this.PostStatus("upload_url_text", &url.Values{
 		"status": {status},
 		"url":    {urlText},
 	})

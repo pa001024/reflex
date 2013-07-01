@@ -35,14 +35,14 @@ type QQWeibo struct { // 腾讯微博API 实现接口IWeibo
 	ITarget
 	Target
 
-	AppKey       string    `json:client_id`     // AppKey
-	AppSecret    string    `json:client_secret` // AppSecret
-	CallbackUrl  string    `json:redirect_uri`  // 验证URL
-	Token        string    `json:access_token`  // OAuth2.0 验证码
-	ExpiresIn    time.Time `json:expires_in`    // 失效时间
-	RefreshToken string    `json:refresh_token` // OAuth2.0 疼迅的二次验证码
-	OpenID       string    `json:openid`        // 平台ID
-	// ClientIP     string    `json:clientip`   // 改为动态计算
+	AppKey       string    `json:"client_id"`     // AppKey
+	AppSecret    string    `json:"client_secret"` // AppSecret
+	CallbackUrl  string    `json:"redirect_uri"`  // 验证URL
+	Token        string    `json:"access_token"`  // OAuth2.0 验证码
+	ExpiresIn    time.Time `json:"expires_in"`    // 失效时间
+	RefreshToken string    `json:"refresh_token"` // OAuth2.0 疼迅的二次验证码
+	OpenID       string    `json:"openid"`        // 平台ID
+	// ClientIP     string    `json:"clientip"`   // 改为动态计算
 }
 type QQWeiboResult struct {
 	ErrorCode int            `json:"errcode"` // 错误代码
@@ -97,7 +97,7 @@ func (this *QQWeibo) AccessToken(code string) (token string) {
 	this.ExpiresIn = ex
 	return this.Token
 }
-func (this *QQWeibo) PostStatus(api string, args *url.Values) (rst *QQWeiboStatus) {
+func (this *QQWeibo) PostStatus(api string, args *url.Values) (rst *QQWeiboStatus, err error) {
 	// OAuth
 	args.Set("oauth_consumer_key", this.AppKey)
 	args.Set("access_token", this.Token)
@@ -113,35 +113,35 @@ func (this *QQWeibo) PostStatus(api string, args *url.Values) (rst *QQWeiboStatu
 	json.NewDecoder(res.Body).Decode(dst)
 	if dst.ErrorCode != 0 {
 		util.Log("Error on call", api+"(Remote):", dst.ErrorCode, ":", dst.Error)
-		return nil
+		return nil, RemoteError
 	}
 	rst = dst.Data
 	return
 }
-func (this *QQWeibo) Update(status string) (rst *QQWeiboStatus) {
-	rst = this.PostStatus("add", &url.Values{
+func (this *QQWeibo) Update(status string) (rst *QQWeiboStatus, err error) {
+	rst, err = this.PostStatus("add", &url.Values{
 		"format":  {"json"},
 		"content": {status},
 	})
 	return
 }
-func (this *QQWeibo) Repost(status string, oriId int64) (rst *QQWeiboStatus) {
-	rst = this.PostStatus("re_add", &url.Values{
+func (this *QQWeibo) Repost(status string, oriId int64) (rst *QQWeiboStatus, err error) {
+	rst, err = this.PostStatus("re_add", &url.Values{
 		"format":  {"json"},
 		"content": {status},
 		"reid":    {util.ToString(oriId)},
 	})
 	return
 }
-func (this *QQWeibo) UploadUrl(status string, urlText string) (rst *QQWeiboStatus) {
-	rst = this.PostStatus("add_pic_url", &url.Values{
+func (this *QQWeibo) UploadUrl(status string, urlText string) (rst *QQWeiboStatus, err error) {
+	rst, err = this.PostStatus("add_pic_url", &url.Values{
 		"format":  {"json"},
 		"content": {status},
 		"pic_url": {urlText},
 	})
 	return
 }
-func (this *QQWeibo) Upload(status string, pic io.Reader) (rst *QQWeiboStatus) {
+func (this *QQWeibo) Upload(status string, pic io.Reader) (rst *QQWeiboStatus, err error) {
 	// multipart/form-data
 	var bpic bytes.Buffer
 	formdata := multipart.NewWriter(&bpic)
@@ -166,7 +166,7 @@ func (this *QQWeibo) Upload(status string, pic io.Reader) (rst *QQWeiboStatus) {
 	json.NewDecoder(res.Body).Decode(dst)
 	if dst.ErrorCode != 0 {
 		util.Log("Error on call upload (Remote):", dst.ErrorCode, ":", dst.Error)
-		return nil
+		return nil, RemoteError
 	}
 	rst = dst.Data
 	return

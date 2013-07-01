@@ -57,6 +57,7 @@ func (this *SourceMediawiki) FetchFeed() (rst *FeedRSS) {
 	res, err := http.Get(this.FeedUrl)
 	if err != nil {
 		util.Log("FetchFeed Fail")
+		return
 	}
 	defer res.Body.Close()
 	rst = &FeedRSS{}
@@ -85,6 +86,7 @@ func (this *SourceMediawiki) GetByName(name string) (rst string) {
 	}).Encode())
 	if err != nil {
 		util.Log("Network Fetch Fail", err)
+		return
 	}
 	defer res.Body.Close()
 	var v map[string]map[string]map[string]map[string][]map[string]interface{}

@@ -29,6 +29,13 @@ func New(name string, b []byte) (rst IFilter) {
 		json.Unmarshal(b, rst)
 		rst.(*FilterMoegirlwiki).Name = name
 		break
+	case "basic":
+		rst = &FilterBasic{}
+		json.Unmarshal(b, rst)
+		d := rst.(*FilterBasic)
+		if d.MaxLength == 0 {
+			d.MaxLength = 120 - len([]rune(d.Suffix)) - len([]rune(d.Prefix))
+		}
 		// case "rss":
 	}
 	return

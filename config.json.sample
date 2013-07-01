@@ -12,9 +12,13 @@
 	},
 	"filter":{
 		"moewikitext":{
-			"type":"moegirlwiki",
+			"type":"moegirlwiki"
+		},
+		"weibobase":{
+			"type":"",
+			"max_length":100,
 			"prefix":"",
-			"suffix":" 阅读更多: {{.UrlText}}"
+			"suffix":"... 阅读更多: {{.UrlText}}"
 		}
 	},
 	"target":{
@@ -25,6 +29,7 @@
 				{
 					"action":"update",
 					"source":["wiki"],
+					"filter":["moewikitext","weibobase"],
 					"limit":"1"
 				}
 			]
@@ -49,6 +54,7 @@
 				{
 					"action":"update",
 					"source":["wiki"],
+					"filter":["moewikitext","weibobase"],
 					"limit":"1"
 				}
 			]

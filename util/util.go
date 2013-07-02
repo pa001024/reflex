@@ -1,7 +1,9 @@
 package util
 
 import (
+	"crypto/md5"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -22,6 +24,13 @@ const (
 func init() {
 	ip, _ := CheckIP()
 	IP = ip
+}
+
+func Md5String(src string) (rst string) {
+	h := md5.New()
+	io.WriteString(h, src)
+	rst = fmt.Sprintf("%x", h.Sum(nil))
+	return
 }
 
 func ToInt64(src string) (rst int64) {

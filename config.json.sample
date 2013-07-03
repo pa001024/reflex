@@ -11,6 +11,9 @@
 		}
 	},
 	"filter":{
+		"zhconv":{
+			"type":"zhconv"
+		},
 		"moewikitext":{
 			"type":"moegirlwiki",
 			"wiki_url":"http://zh.wikipedia.org/wiki/"
@@ -30,7 +33,7 @@
 				{
 					"action":"update",
 					"source":["wiki"],
-					"filter":["moewikitext","weibobase"],
+					"filter":["moewikitext","weibobase","zhconv"],
 					"limit":1
 				}
 			]
@@ -55,7 +58,7 @@
 				{
 					"action":"update",
 					"source":["wiki"],
-					"filter":["moewikitext","weibobase"],
+					"filter":["moewikitext","weibobase","zhconv"],
 					"limit":1
 				}
 			]

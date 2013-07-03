@@ -18,9 +18,10 @@ func (this *FilterZhConv) Process(src []*source.FeedInfo) (dst []*source.FeedInf
 	if fss == nil {
 		fss = strings.NewReplacer(zh_t2s_table...)
 	}
-	dst = make([]*source.FeedInfo, 0, len(src))
+	dst = make([]*source.FeedInfo, len(src))
 	for i, v := range src {
 		nv := *v
+		nv.Title = fss.Replace(nv.Title)
 		nv.Content = fss.Replace(nv.Content)
 		dst[i] = &nv
 	}

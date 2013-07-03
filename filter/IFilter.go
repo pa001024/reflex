@@ -34,12 +34,19 @@ func New(name string, b []byte) (rst IFilter) {
 	case "basic":
 		dst := &FilterBasic{}
 		json.Unmarshal(b, dst)
+		dst.Name = name
 		dst.compFormat = template.Must(template.New(name).Parse(dst.Format))
 		if dst.MaxLength == 0 {
 			dst.MaxLength = 120
 		}
 		rst = dst
 		util.Log("filter.basic \"" + name + "\" Loaded.")
+	case "zhconv":
+		dst := &FilterZhConv{}
+		json.Unmarshal(b, dst)
+		dst.Name = name
+		rst = dst
+		util.Log("filter.zhconv \"" + name + "\" Loaded.")
 	}
 	return
 }

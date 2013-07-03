@@ -1,6 +1,7 @@
 package util
 
 import (
+	"fmt"
 	"math/rand"
 	"testing"
 )
@@ -9,6 +10,20 @@ var (
 	arrA = genArray()
 	arrB = genArray()
 )
+
+func TestRemoveBlock(t *testing.T) {
+	os := `{{
+| {{xxx}}
+* sss{{xx}}
+}}
+
+asdasd
+
+{{
+sdasdasd
+s}}`
+	fmt.Println(RemoveBlock(os, "{{", "}}"))
+}
 
 func genArray() (rst []string) {
 	g := []rune(`abcdefgijklmnopqrstuvwxyzABCDEFGIJKLMNOPQRSTUVWXYZ1234567890-=,./;'[]<>?:"{}`)

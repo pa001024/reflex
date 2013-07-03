@@ -18,7 +18,7 @@
 		"weibobase":{
 			"type":"basic",
 			"max_length":100,
-			"format":"{{.Content}}... 阅读更多: {{.Link}}"
+			"format":"{{.Title}}: {{.Content}}... 阅读更多: {{.Link}}"
 		}
 	},
 	"target":{

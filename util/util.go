@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"crypto/md5"
 	"fmt"
 	"io"
@@ -17,6 +18,36 @@ var (
 const (
 	BASE62_ST = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
+
+func RemoveBlock(src, pr, rp string) (rst string) {
+	buf := new(bytes.Buffer)
+	c := 0
+	mi, im := len([]rune(pr)), len([]rune(rp))
+	s := []rune(src)
+	rl := len(s) - im
+	p, r := []rune(pr)[0], []rune(rp)[0]
+	i, o := 0, 0
+	for ; i < rl; i++ {
+		if s[i] == p {
+			if string(s[i:i+mi]) == pr {
+				if c == 0 {
+					buf.WriteString(string(s[o:i]))
+				}
+				c++
+				o = i + mi
+			}
+		} else if s[i] == r {
+			if string(s[i:i+im]) == rp {
+				c--
+				o = i + im
+			}
+		}
+	}
+	if c == 0 {
+		buf.WriteString(string(s[o:i]))
+	}
+	return buf.String()
+}
 
 func HashCode(str string) (hash int) {
 	for _, v := range str {

@@ -60,22 +60,18 @@ func (this *Daemon) DoAction(tv target.ITarget, act *target.TargetMethod, src []
 	nc := src
 	for _, fv := range act.Filter {
 		f := this.Config.Filter[fv]
-		if f == nil {
-			util.Log("Warning: filter", fv, "not exists")
-			continue
-		}
 		nc = f.(filter.IFilter).Process(nc)
 	}
 	if act.Action == "update" {
 		for _, sv := range act.Source {
 			if this.Config.Source[sv] == nil {
-				util.Log("Warning: update.source \"" + sv + "\" not exists")
+				util.Log("Warning: update.source \"" + sv + "\" not exists. ")
 				continue
 			}
-			for _, rv := range src {
-				b := tv.Send(rv)
+			for _, rv := range nc {
+				b, err := tv.Send(rv)
 				if b == "" {
-					util.Log("Master send fail, stop repost")
+					util.Log("Master send fail, stop repost. ", err)
 					continue
 				}
 				rp := *rv
@@ -85,15 +81,6 @@ func (this *Daemon) DoAction(tv target.ITarget, act *target.TargetMethod, src []
 					rtv.Send(&rp)
 				}
 			}
-		}
-	}
-	if util.DEBUG {
-		for _, v := range src {
-			c := []rune(v.Content)
-			if len(c) > 100 {
-				c = c[0:100]
-			}
-			util.Log(v.SourceId, ":", v.Id, string(c))
 		}
 	}
 	return false

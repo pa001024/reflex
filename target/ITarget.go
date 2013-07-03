@@ -7,7 +7,7 @@ import (
 )
 
 type ITarget interface {
-	Send(src *source.FeedInfo) (rid string)
+	Send(src *source.FeedInfo) (rid string, err error)
 	GetMethod() []*TargetMethod
 	GetId() string
 }

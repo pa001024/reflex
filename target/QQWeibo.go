@@ -19,25 +19,28 @@ const (
 	TQQ_OAUTH_VERSION = "2.a"
 )
 
-func (this *QQWeibo) Send(src *source.FeedInfo) (rid string) {
+func (this *QQWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 	if src.RepostId != "" {
 		r, err := this.Repost(src.Content, src.RepostId)
 		if err != nil {
+			e = err
 			return
 		}
-		return util.ToString(r.Id)
+		return util.ToString(r.Id), nil
 	} else if src.PicUrl != nil && len(src.PicUrl) > 0 {
 		r, err := this.UploadUrl(src.Content, src.PicUrl[0])
 		if err != nil {
+			e = err
 			return
 		}
-		return util.ToString(r.Id)
+		return util.ToString(r.Id), nil
 	} else {
 		r, err := this.Update(src.Content)
 		if err != nil {
+			e = err
 			return
 		}
-		return util.ToString(r.Id)
+		return util.ToString(r.Id), nil
 	}
 	return
 }
@@ -126,9 +129,9 @@ func (this *QQWeibo) PostStatus(api string, args *url.Values) (rst *QQWeiboStatu
 	defer res.Body.Close()
 	dst := &QQWeiboResult{}
 	json.NewDecoder(res.Body).Decode(dst)
-	if dst.ErrorCode != 0 {
+	if dst.Error != "" {
 		util.Log("Error on call", api+"(Remote):", dst.ErrorCode, ":", dst.Error)
-		return nil, RemoteError
+		return nil, RemoteError(dst.Error)
 	}
 	rst = dst.Data
 	return
@@ -185,9 +188,9 @@ func (this *QQWeibo) Upload(status string, pic io.Reader) (rst *QQWeiboStatus, e
 	defer res.Body.Close()
 	dst := &QQWeiboResult{}
 	json.NewDecoder(res.Body).Decode(dst)
-	if dst.ErrorCode != 0 {
+	if dst.Error != "" {
 		util.Log("Error on call upload (Remote):", dst.ErrorCode, ":", dst.Error)
-		return nil, RemoteError
+		return nil, RemoteError(dst.Error)
 	}
 	rst = dst.Data
 	return

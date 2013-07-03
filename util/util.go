@@ -4,9 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"path"
 	"runtime"
 	"strings"
@@ -14,17 +12,12 @@ import (
 
 var (
 	DEBUG = false
-	IP    string
 )
 
 const (
 	BASE62_ST = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
-func init() {
-	ip, _ := CheckIP()
-	IP = ip
-}
 func HashCode(str string) (hash int) {
 	for _, v := range str {
 		hash = int(v) + (hash << 6) + (hash << 16) - hash
@@ -125,20 +118,6 @@ func DeBase62Url(url string) (mid string) {
 			mid = ToString(DeBase62(url[i:i+STEP])) + mid
 		}
 	}
-	return
-}
-
-func CheckIP() (ip string, err error) {
-	res, err := http.Get("http://checkip.dyndns.com/")
-	if err != nil {
-		panic("CheckIP: App is Offine! Dead.")
-	}
-	bin, err := ioutil.ReadAll(res.Body)
-	str := string(bin)
-	if len(str) < 92 {
-		panic("CheckIP: Bad Response!")
-	}
-	ip = str[76 : len(str)-14]
 	return
 }
 

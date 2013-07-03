@@ -26,10 +26,12 @@ var (
 			``)
 	rep_mw_round2 = regexp.MustCompile(
 		`(?:\n|^).{1,12}[：:].+|` + // 去除说明体文字 如 姓名: xxx  `\n(?:本名|姓名|身高|机体|声优|种别|种类|萌点|年龄)[：:].+` +
+			`(?:\n|^)\|.+|` + // 去除表格
 			`== (?:基本信息|登场作品|人物档案|人物信息|外部链接) ==[\s\S]+?(==|$)|` + // 去除无用区块 $1
 			`==+? ?.+? ?==+|` + // 去除标题
 			`\* ?|` + // 去除列表
 			`\[\[([^|\s]+?)\]\]|` + // 第二次替换[[明文|词条名]]词条链接为明文 即$2
+			`{{Bd\|(.+?)\|\|}}|` + // 替换生日为明文 $3
 			`<[\w "%%=/\-:]+?>` + // 去除HTML标签如<br /><references />
 			``)
 	rep_mw_round3 = regexp.MustCompile(
@@ -48,10 +50,10 @@ func (this *FilterMoegirlwiki) FilterContent(src string) (dst string) {
 	const LEN_LIMIT = 100
 	dst = rep_mw_round3.ReplaceAllString(
 		rep_mw_round2.ReplaceAllString(
-			rep_mw_round1.ReplaceAllString(src, "$1$2$3"), "$1$2"), "$1$2")
+			rep_mw_round1.ReplaceAllString(src, "$1$2$3"), "$1$2$3"), "$1$2")
 	ds := []rune(dst)
 	if len(ds) > LEN_LIMIT {
-		dst = string(ds[0:LEN_LIMIT]) + "..."
+		dst = string(ds[0:LEN_LIMIT])
 	}
 	return dst
 }

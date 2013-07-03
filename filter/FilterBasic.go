@@ -3,7 +3,6 @@ package filter
 import (
 	"bytes"
 	"github.com/pa001024/MoeCron/source"
-	"io/ioutil"
 	"text/template"
 )
 
@@ -20,19 +19,19 @@ func (this *FilterBasic) Process(src []*source.FeedInfo) (dst []*source.FeedInfo
 	dst = make([]*source.FeedInfo, len(src))
 	for i, v := range src {
 		nv := *v
-		wr := &bytes.Buffer{}
-		this.compFormat.Execute(wr, nv)
-		s, _ := ioutil.ReadAll(wr)
-		nv.Content = this.FilterContent(string(s))
+		nv.Content = this.FilterContent(nv.Content)
+		buf := new(bytes.Buffer)
+		this.compFormat.Execute(buf, nv)
+		nv.Content = buf.String()
 		dst[i] = &nv
 	}
 	return
 }
 
 func (this *FilterBasic) FilterContent(src string) (dst string) {
-	ds := []rune(dst)
+	ds := []rune(src)
 	if len(ds) > this.MaxLength {
 		dst = string(ds[0:this.MaxLength])
 	}
-	return
+	return src
 }

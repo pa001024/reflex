@@ -27,5 +27,10 @@ type IUser interface {
 var (
 	NoAccessTokenError     = errors.New("Need AccessToken")
 	AccessTokenLapsedError = errors.New("AccessToken Lapsed")
-	RemoteError            = errors.New("Remote Error")
 )
+
+type RemoteError string
+
+func (this RemoteError) Error() string {
+	return "Remote Error: " + string(this)
+}

@@ -30,7 +30,7 @@ import (
 
 var (
 	rep_mw_round0   = regexp.MustCompile(`\[\[File:(.+?)\|.+\]\]|https?://[A-z][A-z0-9\-\./]\.(?:jpg|png|gif)+`) // 提取图片
-	rep_mw_redirect = regexp.MustCompile(`#重定向 \[\[(.+)\]\]`)                                                    // 处理重定向
+	rep_mw_redirect = regexp.MustCompile(`#(?:重定向|redirect) \[\[(.+)\]\]`)                                       // 处理重定向
 )
 
 type SourceMediawiki struct { // Mediawiki 实现接口ISource

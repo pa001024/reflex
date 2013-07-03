@@ -17,25 +17,49 @@ const (
 	TSINA_OAUTH_VERSION = "2.0"
 )
 
-func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string) {
+func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string, e error) {
+	if util.DEBUG {
+		c := []rune(src.Content)
+		if len(c) > 100 {
+			c = c[0:100]
+		}
+		util.Log(src.SourceId, ":", src.Id, string(c))
+	}
 	if src.RepostId != "" {
 		r, err := this.Repost(src.Content, src.RepostId)
 		if err != nil {
+			e = err
 			return
 		}
-		return r.Idstr
+		util.Log("Repost sent:", r.Url())
+		return util.ToString(r.Id), nil
 	} else if src.PicUrl != nil && len(src.PicUrl) > 0 {
-		r, err := this.UploadUrl(src.Content, src.PicUrl[0])
-		if err != nil {
-			return
+		if this.EnableUploadUrl {
+			r, err := this.UploadUrl(src.Content, src.PicUrl[0])
+			if err != nil {
+				e = err
+				return
+			}
+			util.Log("UploadUrl sent:", r.Url())
+			return util.ToString(r.Id), nil
+		} else {
+			pic := util.FetchImageAsStream(src.PicUrl[0])
+			r, err := this.Upload(src.Content, pic)
+			if err != nil {
+				e = err
+				return
+			}
+			util.Log("Upload sent:", r.Url())
+			return util.ToString(r.Id), nil
 		}
-		return r.Idstr
 	} else {
 		r, err := this.Update(src.Content)
 		if err != nil {
+			e = err
 			return
 		}
-		return r.Idstr
+		util.Log("Update sent:", r.Url())
+		return util.ToString(r.Id), nil
 	}
 	return
 }
@@ -53,6 +77,8 @@ type SinaWeibo struct { // 新浪微博API 实现接口IWeibo
 	CallbackUrl string    `json:"redirect_uri"`  // 验证URL
 	Token       string    `json:"access_token"`  // OAuth2.0 验证码
 	ExpiresIn   time.Time `json:"expires_in"`    // 失效时间
+
+	EnableUploadUrl bool `json:"enable_upload_url"` // 启用高级接口 直接使用URL上传
 }
 type SinaWeiboError struct { // 错误
 	Request   string `json:"request"`    // 请求
@@ -236,9 +262,9 @@ func (this *SinaWeibo) PostStatus(api string, args *url.Values) (rst *SinaWeiboS
 	defer res.Body.Close()
 	rst = &SinaWeiboStatus{}
 	json.NewDecoder(res.Body).Decode(rst)
-	if rst.ErrorCode != "" {
-		util.Log("Error on call", api+"(Remote):", rst.ErrorCode, ":", rst.Error, "\nOn:", rst.Request)
-		return nil, RemoteError
+	if rst.Error != "" {
+		util.Log("Error on call", api+"(Remote):", args.Encode(), ":", rst.Error, "\nOn:", rst.Request)
+		return nil, RemoteError(rst.Error)
 	}
 	return
 }
@@ -279,9 +305,9 @@ func (this *SinaWeibo) Upload(status string, pic io.Reader) (rst *SinaWeiboStatu
 	defer res.Body.Close()
 	rst = &SinaWeiboStatus{}
 	json.NewDecoder(res.Body).Decode(rst)
-	if rst.ErrorCode != "" {
+	if rst.Error != "" {
 		util.Log("Error on call upload (Remote):", rst.ErrorCode, ":", rst.Error, "\nOn:", rst.Request)
-		return nil, RemoteError
+		return nil, RemoteError(rst.Error)
 	}
 	return
 }
@@ -293,6 +319,10 @@ func (this *SinaWeibo) UploadUrl(status string, urlText string) (rst *SinaWeiboS
 	return
 }
 func (this *SinaWeiboStatus) Url() (urlText string) {
+	if this == nil || this.User == nil {
+		b, _ := json.Marshal(this)
+		util.Log("Bad response!", string(b))
+	}
 	urlText = "http://weibo.com/" + this.User.Idstr + "/" + util.Base62Url(this.Mid)
 	return
 }

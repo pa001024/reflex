@@ -25,6 +25,7 @@
 		"sina_master1":{
 			"type":"sina",
 			"access_token":"2.0xxxxxxxxxxxxxxxxxx",
+			"enable_upload_url":false,
 			"method":[
 				{
 					"action":"update",

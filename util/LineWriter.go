@@ -1,5 +1,6 @@
 package util
 
+/*
 import (
 	"io"
 	"os"
@@ -52,3 +53,4 @@ func init() {
 		}
 	}()
 }
+*/

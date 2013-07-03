@@ -25,7 +25,48 @@ func init() {
 	ip, _ := CheckIP()
 	IP = ip
 }
+func HashCode(str string) (hash int) {
+	for _, v := range str {
+		hash = int(v) + (hash << 6) + (hash << 16) - hash
+	}
+	return hash & 0x7FFFFFFF
+}
 
+func IsInArray(arr []string, sub string) bool {
+	for _, v := range arr {
+		if v == sub {
+			return true
+		}
+	}
+	return false
+}
+func IsArrayDuplicate(arr []string, arr2 []string) bool {
+	if len(arr)*len(arr2) > 1000 {
+		return IsArrayDuplicateOpt(arr, arr2)
+	}
+	// O(n^2)
+	for _, v := range arr {
+		for _, v2 := range arr2 {
+			if v == v2 {
+				return true
+			}
+		}
+	}
+	return false
+}
+func IsArrayDuplicateOpt(arr []string, arr2 []string) bool {
+	// O((n1 log n1) + n2)
+	m := make(map[string]bool)
+	for _, v := range arr {
+		m[v] = true
+	}
+	for _, v := range arr2 {
+		if m[v] == true {
+			return true
+		}
+	}
+	return false
+}
 func Md5String(src string) (rst string) {
 	h := md5.New()
 	io.WriteString(h, src)

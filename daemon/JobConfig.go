@@ -10,10 +10,14 @@ import (
 )
 
 type JobConfig struct {
-	Debug  bool                   `json:"debug"`
+	Debug bool `json:"debug"`
+	// 注: 用interface{}是为了读取所有数据以进行实例化封装
 	Source map[string]interface{} `json:"source"` // 源
 	Filter map[string]interface{} `json:"filter"` // 过滤器
 	Target map[string]interface{} `json:"target"` // 目标
+
+	// 解析target后使用
+	targetBacklinks map[string][]target.ITarget `json:"-"`
 }
 
 func (this *JobConfig) Load(r io.Reader) (err error) {
@@ -25,14 +29,48 @@ func (this *JobConfig) Load(r io.Reader) (err error) {
 	for i, v := range this.Source {
 		b, _ := json.Marshal(v)
 		this.Source[i] = source.New(i, b)
+		if this.Source[i] == nil {
+			util.Log("source." + i + ".type \"" + v.(map[string]interface{})["type"].(string) + "\" not exists, skip")
+			delete(this.Source, i)
+			continue
+		}
 	}
 	for i, v := range this.Filter {
 		b, _ := json.Marshal(v)
 		this.Filter[i] = filter.New(i, b)
+		if this.Filter[i] == nil {
+			util.Log("filter." + i + ".type \"" + v.(map[string]interface{})["type"].(string) + "\" not exists, skip")
+			delete(this.Filter, i)
+			continue
+		}
 	}
 	for i, v := range this.Target {
 		b, _ := json.Marshal(v)
 		this.Target[i] = target.New(i, b)
+		if this.Target[i] == nil {
+			util.Log("target." + i + ".type \"" + v.(map[string]interface{})["type"].(string) + "\" not exists, skip")
+			delete(this.Target, i)
+			continue
+		}
+	}
+
+	// 解析targetBacklinks
+	this.targetBacklinks = make(map[string][]target.ITarget)
+	for _, tv := range this.Target {
+		if tv == nil {
+			continue
+		}
+		for _, mv := range tv.(target.ITarget).GetMethod() {
+			if mv.Action == "repost" {
+				for _, sv := range mv.Source {
+					if this.targetBacklinks[sv] == nil {
+						this.targetBacklinks[sv] = make([]target.ITarget, 0)
+					}
+					this.targetBacklinks[sv] = append(this.targetBacklinks[sv], tv.(target.ITarget))
+				}
+			}
+
+		}
 	}
 	return
 }

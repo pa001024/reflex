@@ -17,16 +17,31 @@ const (
 	TSINA_OAUTH_VERSION = "2.0"
 )
 
-func (this *SinaWeibo) Send(src *source.FeedInfo) bool {
-	if src.PicUrl != nil && len(src.PicUrl) > 0 {
-		this.UploadUrl(src.Content, src.PicUrl[0])
-		return true
+func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string) {
+	if src.RepostId != "" {
+		r, err := this.Repost(src.Content, src.RepostId)
+		if err != nil {
+			return
+		}
+		return r.Idstr
+	} else if src.PicUrl != nil && len(src.PicUrl) > 0 {
+		r, err := this.UploadUrl(src.Content, src.PicUrl[0])
+		if err != nil {
+			return
+		}
+		return r.Idstr
 	} else {
-		this.Update(src.Content)
-		return true
+		r, err := this.Update(src.Content)
+		if err != nil {
+			return
+		}
+		return r.Idstr
 	}
-	return false
+	return
 }
+
+func (this *SinaWeibo) GetMethod() []*TargetMethod { return this.Method }
+func (this *SinaWeibo) GetId() string              { return this.Name }
 
 type SinaWeibo struct { // 新浪微博API 实现接口IWeibo
 	IWeibo
@@ -233,16 +248,16 @@ func (this *SinaWeibo) Update(status string) (rst *SinaWeiboStatus, err error) {
 	})
 	return
 }
-func (this *SinaWeibo) Repost(status string, oriId int64) (rst *SinaWeiboStatus, err error) {
+func (this *SinaWeibo) Repost(status string, oriId string) (rst *SinaWeiboStatus, err error) {
 	rst, err = this.PostStatus("repost", &url.Values{
 		"status": {status},
-		"id":     {util.ToString(oriId)},
+		"id":     {oriId},
 	})
 	return
 }
-func (this *SinaWeibo) Destroy(oriId int64) (rst *SinaWeiboStatus, err error) {
+func (this *SinaWeibo) Destroy(oriId string) (rst *SinaWeiboStatus, err error) {
 	rst, err = this.PostStatus("destroy", &url.Values{
-		"id": {util.ToString(oriId)},
+		"id": {oriId},
 	})
 	return
 }

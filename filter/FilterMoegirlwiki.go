@@ -2,12 +2,15 @@ package filter
 
 import (
 	"github.com/pa001024/MoeCron/source"
+	"net/url"
 	"regexp"
 )
 
 type FilterMoegirlwiki struct { // 萌娘百科
 	IFilter
 	Filter
+
+	WikiUrl string `json:"wiki_url"`
 }
 
 var (
@@ -59,6 +62,7 @@ func (this *FilterMoegirlwiki) Process(src []*source.FeedInfo) (dst []*source.Fe
 		if !flp_mw.MatchString(v.Title) && !flp_mw.MatchString(v.Content) {
 			nv := *v
 			nv.Content = this.FilterContent(nv.Content)
+			nv.Link = this.WikiUrl + url.QueryEscape(nv.Title) // TODO: 可能不工作
 			dst = append(dst, &nv)
 		}
 	}

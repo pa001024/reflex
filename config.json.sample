@@ -13,12 +13,12 @@
 	"filter":{
 		"moewikitext":{
 			"type":"moegirlwiki",
+			"wiki_url":"http://zh.wikipedia.org/wiki/"
 		},
 		"weibobase":{
-			"type":"",
+			"type":"basic",
 			"max_length":100,
-			"prefix":"",
-			"suffix":"... 阅读更多: {{.UrlText}}"
+			"format":"{{.Content}}... 阅读更多: {{.Link}}"
 		}
 	},
 	"target":{
@@ -30,7 +30,7 @@
 					"action":"update",
 					"source":["wiki"],
 					"filter":["moewikitext","weibobase"],
-					"limit":"1"
+					"limit":1
 				}
 			]
 		},
@@ -41,7 +41,7 @@
 				{
 					"action":"repost",
 					"source":["sina_master1"],
-					"limit":"1"
+					"limit":1
 				}
 			]
 		},
@@ -55,7 +55,7 @@
 					"action":"update",
 					"source":["wiki"],
 					"filter":["moewikitext","weibobase"],
-					"limit":"1"
+					"limit":1
 				}
 			]
 		}

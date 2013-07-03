@@ -19,16 +19,31 @@ const (
 	TQQ_OAUTH_VERSION = "2.a"
 )
 
-func (this *QQWeibo) Send(src *source.FeedInfo) bool {
-	if src.PicUrl != nil && len(src.PicUrl) > 0 {
-		this.UploadUrl(src.Content, src.PicUrl[0])
-		return true
+func (this *QQWeibo) Send(src *source.FeedInfo) (rid string) {
+	if src.RepostId != "" {
+		r, err := this.Repost(src.Content, src.RepostId)
+		if err != nil {
+			return
+		}
+		return util.ToString(r.Id)
+	} else if src.PicUrl != nil && len(src.PicUrl) > 0 {
+		r, err := this.UploadUrl(src.Content, src.PicUrl[0])
+		if err != nil {
+			return
+		}
+		return util.ToString(r.Id)
 	} else {
-		this.Update(src.Content)
-		return true
+		r, err := this.Update(src.Content)
+		if err != nil {
+			return
+		}
+		return util.ToString(r.Id)
 	}
-	return false
+	return
 }
+
+func (this *QQWeibo) GetMethod() []*TargetMethod { return this.Method }
+func (this *QQWeibo) GetId() string              { return this.Name }
 
 type QQWeibo struct { // 腾讯微博API 实现接口IWeibo
 	IWeibo
@@ -125,11 +140,17 @@ func (this *QQWeibo) Update(status string) (rst *QQWeiboStatus, err error) {
 	})
 	return
 }
-func (this *QQWeibo) Repost(status string, oriId int64) (rst *QQWeiboStatus, err error) {
+func (this *QQWeibo) Repost(status string, oriId string) (rst *QQWeiboStatus, err error) {
 	rst, err = this.PostStatus("re_add", &url.Values{
 		"format":  {"json"},
 		"content": {status},
-		"reid":    {util.ToString(oriId)},
+		"reid":    {oriId},
+	})
+	return
+}
+func (this *QQWeibo) Destroy(oriId string) (rst *QQWeiboStatus, err error) {
+	rst, err = this.PostStatus("del", &url.Values{
+		"id": {oriId},
 	})
 	return
 }

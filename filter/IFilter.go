@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/pa001024/MoeCron/source"
 	"github.com/pa001024/MoeCron/util"
+	"text/template"
 )
 
 type IFilter interface {
@@ -25,18 +26,20 @@ func New(name string, b []byte) (rst IFilter) {
 	switch obj.Type {
 	default:
 	case "moegirlwiki":
-		rst = &FilterMoegirlwiki{}
-		json.Unmarshal(b, rst)
-		rst.(*FilterMoegirlwiki).Name = name
-		break
+		dst := &FilterMoegirlwiki{}
+		json.Unmarshal(b, dst)
+		dst.Name = name
+		rst = dst
+		util.Log("filter.moegirlwiki \"" + name + "\" Loaded.")
 	case "basic":
-		rst = &FilterBasic{}
-		json.Unmarshal(b, rst)
-		d := rst.(*FilterBasic)
-		if d.MaxLength == 0 {
-			d.MaxLength = 120 - len([]rune(d.Suffix)) - len([]rune(d.Prefix))
+		dst := &FilterBasic{}
+		json.Unmarshal(b, dst)
+		dst.compFormat = template.Must(template.New(name).Parse(dst.Format))
+		if dst.MaxLength == 0 {
+			dst.MaxLength = 120
 		}
-		// case "rss":
+		rst = dst
+		util.Log("filter.basic \"" + name + "\" Loaded.")
 	}
 	return
 }

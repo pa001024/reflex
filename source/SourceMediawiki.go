@@ -5,8 +5,14 @@ Mediawiki 的 ISource 接口实现
 
 功能
 --------
+
 1. 获取文字内容(使用wiki API提取源代码)
 2. 将图片和文字转交给filter进行文字转换裁剪/添加水印操作后提交给Target进行最终的上传/发送/转发等
+
+注意
+--------
+
+1. 这里的方法都是同步的 如担心阻塞请使用外部的异步方式调用
 
 */
 package source
@@ -23,7 +29,8 @@ import (
 )
 
 var (
-	rep_mw_round0 = regexp.MustCompile(`\[\[File:(.+?)\|.+\]\]|https?://[A-z][A-z0-9\-\./]\.(?:jpg|png|gif)+`) // 提取图片
+	rep_mw_round0   = regexp.MustCompile(`\[\[File:(.+?)\|.+\]\]|https?://[A-z][A-z0-9\-\./]\.(?:jpg|png|gif)+`) // 提取图片
+	rep_mw_redirect = regexp.MustCompile(`#重定向 \[\[(.+)\]\]`)                                                    // 处理重定向
 )
 
 type SourceMediawiki struct { // Mediawiki 实现接口ISource
@@ -34,12 +41,25 @@ type SourceMediawiki struct { // Mediawiki 实现接口ISource
 	PicBase string `json:"pic_url"` // http://upload.wikimedia.org/wikipedia/commons/
 }
 
+func (this *SourceMediawiki) GetChan() <-chan []*FeedInfo {
+	if this.C != nil {
+		return this.C
+	}
+	chw := make(chan []*FeedInfo)
+	t := time.NewTimer(time.Duration(this.Interval) * time.Second)
+	go func() {
+		<-t.C
+		chw <- this.Get()
+	}()
+	return chw
+}
+
 func (this *SourceMediawiki) Get() (rst []*FeedInfo) {
 	f := this.FetchFeed()
 	if f == nil {
 		return
 	}
-	last := time.Now().Add(-time.Duration(this.Interval) * time.Second)
+	last := this.LastUpdate
 	fetched := 0
 	rst = make([]*FeedInfo, 0)
 	for _, v := range f.Item {
@@ -51,17 +71,16 @@ func (this *SourceMediawiki) Get() (rst []*FeedInfo) {
 			util.Log("Time Parse Fail", err)
 			continue
 		}
-		if d.Before(this.LastUpdate) {
+		if d.Sub(last) <= 0 { // It means if feed.Updated >= this.LastUpdate
 			break
 		}
-		if d.After(last) {
-			last = d
+		if d.After(this.LastUpdate) {
+			this.LastUpdate = d
 		}
 		f := this.GetByFeedRSSItem(v)
 		rst = append(rst, f)
 		fetched++
 	}
-	this.LastUpdate = last
 	return
 }
 
@@ -83,10 +102,18 @@ func (this *SourceMediawiki) GetByFeedRSSItem(v *FeedRSSItem) (rst *FeedInfo) {
 		SourceId: this.Name,
 		Title:    v.Title,
 		Author:   v.Author,
+		Link:     v.Link,
 		Content:  this.GetByName(v.Title),
 	}
-	rst.PicUrl = this.FilterPicUrl(rst.Content)
+	this.ClearRedirect(rst)                     // 处理重定向
+	rst.PicUrl = this.FilterPicUrl(rst.Content) // 处理图片
 	return
+}
+func (this *SourceMediawiki) ClearRedirect(v *FeedInfo) {
+	d := rep_mw_redirect.FindAllStringSubmatch(v.Content, 1)
+	if len(d) > 0 && len(d[0]) > 1 {
+		v.Content = this.GetByName(d[0][1])
+	}
 }
 
 func (this *SourceMediawiki) FilterPicUrl(src string) (dst []string) {

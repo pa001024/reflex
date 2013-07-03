@@ -137,7 +137,7 @@ func (this *SourceMediawiki) GetByName(name string) (rst string) {
 		"action": {"query"},
 		"prop":   {"revisions"},
 		"rvprop": {"content"},
-		"titles": {name},
+		"titles": {strings.Replace(name, " ", "_", 0)},
 	}).Encode())
 	if err != nil {
 		util.Log("Network Fetch Fail", err)

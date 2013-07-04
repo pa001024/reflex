@@ -34,8 +34,8 @@ import (
 )
 
 var (
-	rep_mw_round0   = regexp.MustCompile(`\[\[File:\s*(\S.+?)\|.+\]\]|https?://[A-z][A-z0-9\-\./]+/[A-z0-9\-\./%]+\.(?:jpg|png|gif)|\| image ?=\s*(\S.+.(?:jpg|png|gif))`) // 提取图片
-	rep_mw_redirect = regexp.MustCompile(`#(?:重定向|redirect) \[\[(.+)\]\]`)                                                                                                 // 处理重定向
+	rep_mw_pic      = regexp.MustCompile(`\[\[(?:image|file):\s*(\S.+?\.(?:jpg|png|gif))(?:\|.+)?\]\]|\| image +?=\s*(\S.+\.(?:jpg|png|gif))|(https?://[A-z][A-z0-9\-\./]+/[A-z0-9\-\./%]+\.(?:jpg|png|gif))`) // 提取图片
+	rep_mw_redirect = regexp.MustCompile(`#(?:重定向|redirect) \[\[(.+)\]\]`)                                                                                                                                     // 处理重定向
 )
 
 type SourceMediawiki struct { // Mediawiki 实现接口ISource
@@ -115,26 +115,33 @@ func (this *SourceMediawiki) GetByFeedRSSItem(v *FeedRSSItem) (rst *FeedInfo) {
 	return
 }
 func (this *SourceMediawiki) ClearRedirect(v *FeedInfo) {
-	d := rep_mw_redirect.FindAllStringSubmatch(v.Content, 1)
+	d := rep_mw_redirect.FindAllStringSubmatch(strings.ToLower(v.Content), 1) // 需要优化
 	if len(d) > 0 && len(d[0]) > 1 {
 		v.Content = this.GetByName(d[0][1])
 	}
 }
 
 func (this *SourceMediawiki) FilterPicUrl(src string) (dst []string) {
-	t := rep_mw_round0.FindAllStringSubmatch(src, 0)
+	t := rep_mw_pic.FindAllStringSubmatch(strings.ToLower(src), -1) // 需要优化
 	dst = make([]string, 0, len(t))
+endf:
 	for _, v := range t {
 		var raw string
-		for _, s := range v {
+		for i, s := range v[1:] {
 			if s != "" {
+				if i == 2 {
+					dst = append(dst, s)
+					continue endf
+				}
 				raw = s
+				break
 			}
 		}
+
 		if raw == "" {
 			continue
 		}
-		raw = strings.Replace(raw, " ", "_", 0)
+		raw = strings.Replace(raw, " ", "_", -1)
 		h := util.Md5String(raw)
 		raw = this.PicBase + h[0:1] + "/" + h[0:2] + "/" + raw
 		dst = append(dst, raw)
@@ -148,7 +155,7 @@ func (this *SourceMediawiki) GetByName(name string) (rst string) {
 		"action": {"query"},
 		"prop":   {"revisions"},
 		"rvprop": {"content"},
-		"titles": {strings.Replace(name, " ", "_", 0)},
+		"titles": {strings.Replace(name, " ", "_", -1)},
 	}).Encode())
 	if err != nil {
 		util.Log("Network Fetch Fail", err)

@@ -21,8 +21,8 @@ var (
 			`{{(?:[Bb][Dd]|[Ll]ang[-\|].+?)\|(.+?)}}|` + // 替换生日/lang为明文 $1
 			// `{{.+}}|{{[^{]+?}}|` + // 去除所有{{}}标签 - 因为Go的正则不支持平衡组(也就.NET支持了)已经换成util.RemoveBlock()
 			`{\|[\s\S]+?\|}|` + // 去除所有{||}标签
-			`\[\[(\s*[^\|]+?)[\s\S]+?\]\]|` + // 替换[[明文|词条名]]词条链接为明文 即$2
-			`\[\[([^\[]+?)\]\]|` + // 替换[[明文]]词条链接为明文 $3
+			`\[\[(\s*[^|\]]+?)\|.+?\]\]|` + // 替换[[明文|词条名]]词条链接为明文 即$2
+			`\[\[([^[|]+?)\]\]|` + // 替换[[明文]]词条链接为明文 $3
 			`<s>.+?</s>|` + // 去除所有<s></s>标签
 			`<ref.*?>.+?</ref>|` + // 去除所有<ref></ref>标签
 			`<\w+>(.+?)</\w+>` + // 替换所有HTML标签为明文 即$4
@@ -42,6 +42,7 @@ var (
 		`===+ (?:基本资料) ===+[\s\S]+?(==|$)|` + // 去除无用小区块 $1
 			`(\n)\n+|` + // 去除连续两个以上的换行符 $2
 			`^\s+|` + // 去除开头空白
+			`<[A-z/].+?>` + // 去除HTML标签如<br /><references /> (再来一发)
 			`（待补完）|` + // 去除（待补完）
 			`[^\S\n]\s+` + // 去除两个以上的空白符 行文中分词的单个空格不会被替换 中文空格不会被替换
 			``)
@@ -52,7 +53,8 @@ var (
 
 func (this *FilterMoegirlwiki) FilterContent(src string) (dst string) {
 	dst = rep_mw_round1.ReplaceAllString(src, "$1$2$3$4")
-	dst = util.RemoveBlock(dst, "{{", "}}")
+	dst = util.RemoveBlock(dst, "{{", "}}")    // 去除所有{{}}标签
+	dst = util.RemoveBlock(dst, "<!--", "-->") // 去除所有HTML注释
 	dst = rep_mw_round2.ReplaceAllString(dst, "$1$2$3$4")
 	dst = rep_mw_round3.ReplaceAllString(dst, "$1$2")
 	return dst
@@ -64,7 +66,7 @@ func (this *FilterMoegirlwiki) Process(src []*source.FeedInfo) (dst []*source.Fe
 		if !flp_mw.MatchString(v.Title) && !flp_mw.MatchString(v.Content) {
 			nv := *v
 			nv.Content = this.FilterContent(nv.Content)
-			nv.Link = this.WikiUrl + url.QueryEscape(strings.Replace(nv.Title, " ", "_", 0)) // TODO: 可能不工作
+			nv.Link = this.WikiUrl + url.QueryEscape(strings.Replace(nv.Title, " ", "_", -1)) // TODO: 可能不工作
 			dst = append(dst, &nv)
 		}
 	}

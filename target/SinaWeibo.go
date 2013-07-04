@@ -19,7 +19,7 @@ const (
 
 func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 	if util.DEBUG {
-		util.Log(src.SourceId, ":", src.Id, src.Title, src.Content)
+		util.Log(src.SourceId, ":", src.Id, src.Title, src.Content, src.PicUrl)
 	}
 	if src.RepostId != "" {
 		r, err := this.Repost(src.Content, src.RepostId)
@@ -27,7 +27,7 @@ func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 			e = err
 			return
 		}
-		util.Log("Repost sent:", r.Url())
+		util.Log("[sina."+this.Name+"] Repost sent:", r.Url())
 		return util.ToString(r.Id), nil
 	} else if src.PicUrl != nil && len(src.PicUrl) > 0 {
 		if this.EnableUploadUrl {
@@ -36,7 +36,7 @@ func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 				e = err
 				return
 			}
-			util.Log("UploadUrl sent:", r.Url())
+			util.Log("[sina."+this.Name+"] UploadUrl sent:", r.Url())
 			return util.ToString(r.Id), nil
 		} else {
 			pic := util.FetchImageAsStream(src.PicUrl[0])
@@ -45,7 +45,7 @@ func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 				e = err
 				return
 			}
-			util.Log("Upload sent:", r.Url())
+			util.Log("[sina."+this.Name+"] Upload sent:", r.Url())
 			return util.ToString(r.Id), nil
 		}
 	} else {
@@ -259,7 +259,6 @@ func (this *SinaWeibo) PostStatus(api string, args *url.Values) (rst *SinaWeiboS
 	rst = &SinaWeiboStatus{}
 	json.NewDecoder(res.Body).Decode(rst)
 	if rst.Error != "" {
-		util.Log("Error on call", api+"(Remote):", args.Encode(), ":", rst.Error, "\nOn:", rst.Request)
 		return nil, RemoteError(rst.Error)
 	}
 	return
@@ -302,7 +301,6 @@ func (this *SinaWeibo) Upload(status string, pic io.Reader) (rst *SinaWeiboStatu
 	rst = &SinaWeiboStatus{}
 	json.NewDecoder(res.Body).Decode(rst)
 	if rst.Error != "" {
-		util.Log("Error on call upload (Remote):", rst.ErrorCode, ":", rst.Error, "\nOn:", rst.Request)
 		return nil, RemoteError(rst.Error)
 	}
 	return

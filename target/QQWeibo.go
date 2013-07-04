@@ -20,12 +20,16 @@ const (
 )
 
 func (this *QQWeibo) Send(src *source.FeedInfo) (rid string, e error) {
+	if util.DEBUG {
+		util.Log(src.SourceId, ":", src.Id, src.Title, src.Content, src.PicUrl)
+	}
 	if src.RepostId != "" {
 		r, err := this.Repost(src.Content, src.RepostId)
 		if err != nil {
 			e = err
 			return
 		}
+		util.Log("[qq."+this.Name+"] Repost sent:", r.Url())
 		return util.ToString(r.Id), nil
 	} else if src.PicUrl != nil && len(src.PicUrl) > 0 {
 		r, err := this.UploadUrl(src.Content, src.PicUrl[0])
@@ -33,6 +37,7 @@ func (this *QQWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 			e = err
 			return
 		}
+		util.Log("[qq."+this.Name+"] UploadUrl sent:", r.Url())
 		return util.ToString(r.Id), nil
 	} else {
 		r, err := this.Update(src.Content)
@@ -40,6 +45,7 @@ func (this *QQWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 			e = err
 			return
 		}
+		util.Log("[qq."+this.Name+"] Update sent:", r.Url())
 		return util.ToString(r.Id), nil
 	}
 	return

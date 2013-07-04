@@ -19,7 +19,7 @@ const (
 
 func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 	if util.DEBUG {
-		util.Log(src.SourceId, ":", src.Id, src.Title, src.Content, src.PicUrl)
+		util.Log(src.SourceId, ":", src.Id, src.RepostId, src.Title, src.Content, src.PicUrl)
 	}
 	if src.RepostId != "" {
 		r, err := this.Repost(src.Content, src.RepostId)

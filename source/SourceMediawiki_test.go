@@ -52,6 +52,12 @@ func TestGetByName(t *testing.T) {
 	log.Println(sour.GetByName("噬血狂襲"))
 	log.Println(sour.GetByName("噬血狂襲22")) // test for not exists
 }
+func TestFilterPicUrlOnline(t *testing.T) {
+	d := sour.GetByName("中華民國")
+	a := sour.FilterPicUrl(d)
+	// fmt.Printf("%#v\n", d)
+	fmt.Printf("%#v\n", a)
+}
 
 func TestFilterPicUrl(t *testing.T) {
 	d := `[[image:ia asd.png]]

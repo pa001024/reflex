@@ -5,6 +5,7 @@ import (
 	"github.com/pa001024/MoeCron/source"
 	"github.com/pa001024/MoeCron/target"
 	"github.com/pa001024/MoeCron/util"
+	"time"
 )
 
 type Daemon struct {
@@ -77,7 +78,8 @@ func (this *Daemon) DoAction(tv target.ITarget, act *target.TargetMethod, src []
 				rp := *rv
 				rp.RepostId = b
 				rp.Content = "转发微博"
-				for _, rtv := range this.Config.targetBacklinks[rv.SourceId] {
+				for _, rtv := range this.Config.targetBacklinks[tv.GetId()] {
+					<-time.After(20 * time.Second) // 防止刷爆 TODO: 移到配置文件
 					rtv.Send(&rp)
 				}
 			}

@@ -57,19 +57,15 @@ func (this *JobConfig) Load(r io.Reader) (err error) {
 	// 解析targetBacklinks
 	this.targetBacklinks = make(map[string][]target.ITarget)
 	for _, tv := range this.Target {
-		if tv == nil {
-			continue
-		}
 		for _, mv := range tv.(target.ITarget).GetMethod() {
 			if mv.Action == "repost" {
-				for _, sv := range mv.Source {
+				for _, sv := range mv.Source { // 类型为 "repost" 的 Method 中的Source是需要转发的Target的ID
 					if this.targetBacklinks[sv] == nil {
 						this.targetBacklinks[sv] = make([]target.ITarget, 0)
 					}
 					this.targetBacklinks[sv] = append(this.targetBacklinks[sv], tv.(target.ITarget))
 				}
 			}
-
 		}
 	}
 	return

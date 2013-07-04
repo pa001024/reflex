@@ -12,7 +12,12 @@ Mediawiki 的 ISource 接口实现
 注意
 --------
 
-1. 这里的方法都是同步的 如担心阻塞请使用外部的异步方式调用
+1. 这里的方法都是同步的 如担心阻塞请使用异步方式调用
+
+TODO
+--------
+
+这里写在source可能有代码冗余 请转移到filter
 
 */
 package source
@@ -29,8 +34,8 @@ import (
 )
 
 var (
-	rep_mw_round0   = regexp.MustCompile(`\[\[File:(.+?)\|.+\]\]|https?://[A-z][A-z0-9\-\./]\.(?:jpg|png|gif)+`) // 提取图片
-	rep_mw_redirect = regexp.MustCompile(`#(?:重定向|redirect) \[\[(.+)\]\]`)                                       // 处理重定向
+	rep_mw_round0   = regexp.MustCompile(`\[\[File:\s*(\S.+?)\|.+\]\]|https?://[A-z][A-z0-9\-\./]+/[A-z0-9\-\./%]+\.(?:jpg|png|gif)|\| image ?=\s*(\S.+.(?:jpg|png|gif))`) // 提取图片
+	rep_mw_redirect = regexp.MustCompile(`#(?:重定向|redirect) \[\[(.+)\]\]`)                                                                                                 // 处理重定向
 )
 
 type SourceMediawiki struct { // Mediawiki 实现接口ISource
@@ -77,8 +82,8 @@ func (this *SourceMediawiki) Get() (rst []*FeedInfo) {
 		if d.After(this.LastUpdate) {
 			this.LastUpdate = d
 		}
-		f := this.GetByFeedRSSItem(v)
-		rst = append(rst, f)
+		fv := this.GetByFeedRSSItem(v)
+		rst = append(rst, fv)
 		fetched++
 	}
 	return
@@ -87,7 +92,7 @@ func (this *SourceMediawiki) Get() (rst []*FeedInfo) {
 func (this *SourceMediawiki) FetchFeed() (rst *FeedRSS) {
 	res, err := http.Get(this.FeedUrl)
 	if err != nil {
-		util.Log("FetchFeed Fail")
+		util.Log("FetchFeed Fail", err)
 		return
 	}
 	defer res.Body.Close()
@@ -120,13 +125,19 @@ func (this *SourceMediawiki) FilterPicUrl(src string) (dst []string) {
 	t := rep_mw_round0.FindAllStringSubmatch(src, 0)
 	dst = make([]string, 0, len(t))
 	for _, v := range t {
-		if len(v) > 1 {
-			raw := v[1]
-			raw = strings.Replace(raw, " ", "_", 0)
-			h := util.Md5String(raw)
-			raw = this.PicBase + h[0:1] + "/" + h[0:2] + "/" + raw
-			dst = append(dst, raw)
+		var raw string
+		for _, s := range v {
+			if s != "" {
+				raw = s
+			}
 		}
+		if raw == "" {
+			continue
+		}
+		raw = strings.Replace(raw, " ", "_", 0)
+		h := util.Md5String(raw)
+		raw = this.PicBase + h[0:1] + "/" + h[0:2] + "/" + raw
+		dst = append(dst, raw)
 	}
 	return
 }

@@ -19,17 +19,18 @@ const (
 	BASE62_ST = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
-func RemoveBlock(src, pr, rp string) (rst string) {
+// 使用前缀和后缀移除可嵌套的区块
+func RemoveBlock(src, perfix, suffix string) (rst string) {
 	buf := new(bytes.Buffer)
 	c := 0
-	mi, im := len([]rune(pr)), len([]rune(rp))
+	mi, im := len([]rune(perfix)), len([]rune(suffix))
 	s := []rune(src)
 	rl := len(s) - im
-	p, r := []rune(pr)[0], []rune(rp)[0]
+	p, r := []rune(perfix)[0], []rune(suffix)[0]
 	i, o := 0, 0
 	for ; i < rl; i++ {
 		if s[i] == p {
-			if string(s[i:i+mi]) == pr {
+			if string(s[i:i+mi]) == perfix {
 				if c == 0 {
 					buf.WriteString(string(s[o:i]))
 				}
@@ -37,14 +38,14 @@ func RemoveBlock(src, pr, rp string) (rst string) {
 				o = i + mi
 			}
 		} else if s[i] == r {
-			if string(s[i:i+im]) == rp {
+			if string(s[i:i+im]) == suffix {
 				c--
 				o = i + im
 			}
 		}
 	}
 	if c == 0 {
-		buf.WriteString(string(s[o:i]))
+		buf.WriteString(string(s[o:]))
 	}
 	return buf.String()
 }

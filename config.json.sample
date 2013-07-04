@@ -5,7 +5,7 @@
 			"type":"mediawiki",
 			"feed_url":"http://zh.wikipedia.org/w/index.php?title=Special:%E6%9C%80%E8%BF%91%E6%9B%B4%E6%94%B9&feed=rss&namespace=0",
 			"api_url":"http://zh.wikipedia.org/w/api.php",
-			"pic_url":"http://upload.wikimedia.org/wikipedia/commons/",
+			"pic_url":"http://upload.wikimedia.org/wikipedia/zh/",
 			"interval":120,
 			"limit":1
 		}

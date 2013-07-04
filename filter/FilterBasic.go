@@ -29,6 +29,9 @@ func (this *FilterBasic) Process(src []*source.FeedInfo) (dst []*source.FeedInfo
 }
 
 func (this *FilterBasic) FilterContent(src string) (dst string) {
+	if this.MaxLength <= 0 {
+		return src
+	}
 	ds := []rune(src)
 	if len(ds) > this.MaxLength {
 		dst = string(ds[0:this.MaxLength])

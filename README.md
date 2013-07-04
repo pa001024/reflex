@@ -26,6 +26,11 @@ Build
 3. cd into `MoeCron` folder and type command `make`
 4. run `make test`
 
+Using lib
+-----------
+
+1. [freetype-go](https://code.google.com/p/freetype-go/)
+
 信息
 -----------
 
@@ -55,3 +60,8 @@ Build
 1. __接口__: 提供给外部的通用API
 2. __容器__: 存放实现所需的数据 实现持久化 可配置
 3. __实现__: 真正的实例 继承接口和容器 实现接口表述的方法
+
+使用类库
+-----------
+
+1. [freetype-go](https://code.google.com/p/freetype-go/)

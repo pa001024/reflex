@@ -36,5 +36,5 @@ func (this *FilterBasic) FilterContent(src string) (dst string) {
 	if len(ds) > this.MaxLength {
 		dst = string(ds[0:this.MaxLength])
 	}
-	return src
+	return
 }

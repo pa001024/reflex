@@ -19,18 +19,16 @@ type FilterWords struct {
 }
 
 func (this *FilterWords) LoadDict(r io.Reader) error {
-	g := regexp.MustCompile(`(\S.+) +(\S.+)`)
+	g := regexp.MustCompile(`.+`)
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
 		return err
 	}
-	m := g.FindAllStringSubmatch(string(b), -1)
+	m := g.FindAllString(string(b), -1)
 	a := make([]string, 0, len(m)*2)
 	for _, v := range m {
-		if len(v) > 2 && v[1] != "" && v[2] != "" {
-			a = append(a, v[1])
-			a = append(a, v[2])
-		}
+		a = append(a, v)
+		a = append(a, "")
 	}
 	this.compFilter = strings.NewReplacer(a...)
 	return nil

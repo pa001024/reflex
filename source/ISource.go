@@ -28,8 +28,9 @@ type Source struct { // 配置持久模板
 	Interval int    `json:"interval"` // 发送频率 单位为秒
 	Limit    int    `json:"limit"`    // 单次发送上限 超过的丢弃
 	// Pic      []int  `json:"pic,omitempty"` // 图片大小 [minX,maxX,minY,maxY] 不填表示不发送图片
-	C          chan []*FeedInfo `json:"-"`
-	LastUpdate time.Time        `json:"-"`
+	C                   chan []*FeedInfo `json:"-"`
+	LastUpdate          time.Time        `json:"-"`
+	DoUpdateBeforeStart bool             `json:"do_update_before_start"` // 不更新程序启动之前的条目
 }
 
 func New(name string, b []byte) (rst ISource) {
@@ -39,24 +40,30 @@ func New(name string, b []byte) (rst ISource) {
 		util.Log("JSON Parse Error", err)
 		return
 	}
-	switch obj.Type {
+	switch obj.Type { // TODO: 使用反射替代这么啰嗦的初始化
 	case "atom", "atomfeed":
 		dst := &SourceAtom{}
 		json.Unmarshal(b, dst)
 		dst.Name = name
-		dst.LastUpdate = time.Now() // 不更新程序启动之前的条目 可直接删除 TODO: 或改到配置文件中
+		if !dst.DoUpdateBeforeStart {
+			dst.LastUpdate = time.Now()
+		}
 		util.Log("source.atom \"" + name + "\" Loaded.")
 	case "rss", "rssfeed":
 		dst := &SourceRSS{}
 		json.Unmarshal(b, dst)
 		dst.Name = name
-		dst.LastUpdate = time.Now() // 不更新程序启动之前的条目 可直接删除 TODO: 或改到配置文件中
+		if !dst.DoUpdateBeforeStart {
+			dst.LastUpdate = time.Now()
+		}
 		util.Log("source.rss \"" + name + "\" Loaded.")
 	case "mediawiki", "wikifeed", "wiki":
 		dst := &SourceMediawiki{}
 		json.Unmarshal(b, dst)
 		dst.Name = name
-		// dst.LastUpdate = time.Now() // 不更新程序启动之前的条目 可直接删除 TODO: 或改到配置文件中
+		if !dst.DoUpdateBeforeStart {
+			dst.LastUpdate = time.Now()
+		}
 		rst = dst
 		util.Log("source.mediawiki \"" + name + "\" Loaded.")
 	}

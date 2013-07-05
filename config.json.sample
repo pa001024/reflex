@@ -11,6 +11,9 @@
 		}
 	},
 	"filter":{
+		"url":{
+			"type":"url"
+		},
 		"zhconv":{
 			"type":"zhconv"
 		},
@@ -33,7 +36,7 @@
 				{
 					"action":"update",
 					"source":["wiki"],
-					"filter":["moewikitext","weibobase","zhconv"],
+					"filter":["moewikitext","url","weibobase","zhconv"],
 					"limit":1
 				}
 			]
@@ -58,7 +61,7 @@
 				{
 					"action":"update",
 					"source":["wiki"],
-					"filter":["moewikitext","weibobase","zhconv"],
+					"filter":["moewikitext","url","weibobase","zhconv"],
 					"limit":1
 				}
 			]

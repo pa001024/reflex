@@ -56,7 +56,7 @@ func New(name string, b []byte) (rst ISource) {
 		dst := &SourceMediawiki{}
 		json.Unmarshal(b, dst)
 		dst.Name = name
-		dst.LastUpdate = time.Now() // 不更新程序启动之前的条目 可直接删除 TODO: 或改到配置文件中
+		// dst.LastUpdate = time.Now() // 不更新程序启动之前的条目 可直接删除 TODO: 或改到配置文件中
 		rst = dst
 		util.Log("source.mediawiki \"" + name + "\" Loaded.")
 	}

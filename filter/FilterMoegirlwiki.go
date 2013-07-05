@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-type FilterMoegirlwiki struct { // 萌娘百科
+type FilterMoegirlwiki struct { // 萌娘百科 wikitext过滤器
 	IFilter
 	Filter
 

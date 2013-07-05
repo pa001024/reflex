@@ -126,7 +126,7 @@ func (this *SourceMediawiki) ClearRedirect(v *FeedInfo) {
 }
 
 func (this *SourceMediawiki) FilterPicUrl(src string) (dst []string) {
-	t := rep_mw_pic.FindAllStringSubmatch(src, -1) // 需要优化
+	t := rep_mw_pic.FindAllStringSubmatch(src, -1) // TODO: 有的WIKI有两个以上的图片地址 需要补完算法
 	dst = make([]string, 0, len(t))
 endf:
 	for _, v := range t {

@@ -12,11 +12,12 @@
 package filter
 
 import (
+	"code.google.com/p/freetype-go/freetype"
 	"github.com/pa001024/MoeCron/source"
 )
 
 type FilterImageMerger struct { // 图片合并
-	// IFilter 未实现
+	IFilter
 	Filter
 
 	MaxPic int    `json:"max_pic"`
@@ -24,5 +25,6 @@ type FilterImageMerger struct { // 图片合并
 }
 
 func (this *FilterImageMerger) Process(src []*source.FeedInfo) (dst []*source.FeedInfo) {
+	freetype.ParseFont([]byte{})
 	return
 }

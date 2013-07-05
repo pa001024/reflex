@@ -186,10 +186,14 @@ type SinaWeiboRemind struct { // 消息未读数
 	Badge         int `json:"badge"`          // 新勋章数
 	Photo         int `json:"photo"`          // 相册消息未读数
 }
+type SinaWeiboShortUrlResult struct {
+	SinaWeiboError
+	Urls []*SinaWeiboUrlShort `json:"urls"`
+}
 type SinaWeiboUrlShort struct { // 短链
 	UrlShort string `json:"url_short"` // 短链接
 	UrlLong  string `json:"url_long"`  // 原始长链接
-	Type_    int    `json:"type"`      // 链接的类型，0：普通网页、1：视频、2：音乐、3：活动、5、投票
+	Type     int    `json:"type"`      // 链接的类型，0：普通网页、1：视频、2：音乐、3：活动、5、投票
 	Result   bool   `json:"result"`    // 短链的可用状态，true：可用、false：不可用。
 }
 type SinaWeiboGeo struct { // 地理信息
@@ -310,6 +314,24 @@ func (this *SinaWeibo) UploadUrl(status string, urlText string) (rst *SinaWeiboS
 		"status": {status},
 		"url":    {urlText},
 	})
+	return
+}
+func (this *SinaWeibo) ShortUrl(urlLong string) (rst string) {
+	res, err := http.Get("https://api.weibo.com/2/short_url/shorten.json?" + (url.Values{
+		"access_token": {this.Token},
+		"url_long":     {urlLong},
+	}).Encode())
+	if err != nil {
+		util.Log("Error on call ShortUrl:", err)
+		return
+	}
+	defer res.Body.Close()
+	v := &SinaWeiboShortUrlResult{}
+	json.NewDecoder(res.Body).Decode(v)
+	if v.Error != "" {
+		util.Log("Error on call ShortUrl[Remote]:", v.Error)
+		return urlLong
+	}
 	return
 }
 func (this *SinaWeiboStatus) Url() (urlText string) {

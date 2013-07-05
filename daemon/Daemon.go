@@ -61,6 +61,10 @@ func (this *Daemon) DoAction(tv target.ITarget, act *target.TargetMethod, src []
 	nc := src
 	for _, fv := range act.Filter {
 		f := this.Config.Filter[fv]
+		if f == nil {
+			util.Log("Warning: filter \"" + fv + "\" not exists.")
+			continue
+		}
 		nc = f.(filter.IFilter).Process(nc)
 	}
 	if act.Action == "update" {

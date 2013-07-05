@@ -31,6 +31,12 @@ func New(name string, b []byte) (rst IFilter) {
 		dst.Name = name
 		rst = dst
 		util.Log("filter.moegirlwiki \"" + name + "\" Loaded.")
+	case "word":
+		dst := &FilterWords{}
+		json.Unmarshal(b, dst)
+		dst.Name = name
+		rst = dst
+		util.Log("filter.word \"" + name + "\" Loaded.")
 	case "zhconv":
 		dst := &FilterZhConv{}
 		json.Unmarshal(b, dst)

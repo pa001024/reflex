@@ -5,7 +5,7 @@ import (
 	"net/url"
 )
 
-type FilterUrl struct {
+type FilterUrl struct { // 将URL进行encode 以修复微博等处的BUG
 	IFilter
 	Filter
 }

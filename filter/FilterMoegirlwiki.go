@@ -47,7 +47,6 @@ var (
 			`（待补完）|` + // 去除（待补完）
 			`[^\S\n]\s+` + // 去除两个以上的空白符 行文中分词的单个空格不会被替换 中文空格不会被替换
 			``)
-	flp_mw = regexp.MustCompile(`R18`)
 
 	// {{[\s\S]+?}}|\[\[[\s\S]+?\]\]|'''(.+?)'''|== (.+?) ==|<references />|\s+
 )
@@ -62,14 +61,12 @@ func (this *FilterMoegirlwiki) FilterContent(src string) (dst string) {
 }
 
 func (this *FilterMoegirlwiki) Process(src []*source.FeedInfo) (dst []*source.FeedInfo) {
-	dst = make([]*source.FeedInfo, 0, 10)
+	dst = make([]*source.FeedInfo, 0, len(src))
 	for _, v := range src {
-		if !flp_mw.MatchString(v.Title) && !flp_mw.MatchString(v.Content) {
-			nv := *v
-			nv.Content = this.FilterContent(nv.Content)
-			nv.Link = this.WikiUrl + url.QueryEscape(strings.Replace(nv.Title, " ", "_", -1)) // TODO: 可能不工作
-			dst = append(dst, &nv)
-		}
+		nv := *v
+		nv.Content = this.FilterContent(nv.Content)
+		nv.Link = this.WikiUrl + url.QueryEscape(strings.Replace(nv.Title, " ", "_", -1)) // TODO: 可能不工作
+		dst = append(dst, &nv)
 	}
 	return
 }

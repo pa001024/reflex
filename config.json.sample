@@ -11,6 +11,14 @@
 		}
 	},
 	"filter":{
+		"word":{
+			"type":"word",
+			"dict_file":"some.txt"
+		},
+		"r18filter":{
+			"type":"regexp",
+			"regexp":"R18|血腥|暴力"
+		},
 		"url":{
 			"type":"url"
 		},

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/pa001024/MoeCron/daemon"
-	"github.com/pa001024/MoeCron/util"
+	"github.com/pa001024/MoeWorker/daemon"
+	"github.com/pa001024/MoeWorker/util"
 	"os"
 )
 

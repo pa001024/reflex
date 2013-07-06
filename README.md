@@ -1,4 +1,4 @@
-MoeCron
+MoeWorker
 =========
 
 Info
@@ -15,15 +15,15 @@ Build
 -----------
 
 1. install [Go](http://golang.org/doc/install)
-2. type command `go get github.com/pa001024/MoeCron`
+2. type command `go get github.com/pa001024/MoeWorker`
 3. cd into `main` folder and type command `go build`
-4. run `./MoeCron` to start daemon
+4. run `./MoeWorker` to start daemon
 
 #### (Another way)Makefile
 
 1. install [Go](http://golang.org/doc/install)
-2. type command `go get github.com/pa001024/MoeCron`
-3. cd into `MoeCron` folder and type command `make`
+2. type command `go get github.com/pa001024/MoeWorker`
+3. cd into `MoeWorker` folder and type command `make`
 4. run `make test`
 
 Using lib

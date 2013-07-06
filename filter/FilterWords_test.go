@@ -3,7 +3,7 @@ package filter
 import (
 	"bytes"
 	"fmt"
-	"github.com/pa001024/MoeCron/source"
+	"github.com/pa001024/MoeWorker/source"
 	"testing"
 )
 

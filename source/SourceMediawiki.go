@@ -24,7 +24,7 @@ package source
 
 import (
 	"encoding/json"
-	"github.com/pa001024/MoeCron/util"
+	"github.com/pa001024/MoeWorker/util"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -50,7 +50,19 @@ type SourceMediawiki struct { // Mediawiki 实现接口ISource
 }
 
 func (this *SourceMediawiki) GetChan() <-chan []*FeedInfo {
-	return this.super_GetChan()
+	if this.C != nil {
+		return this.C
+	}
+	chw := make(chan []*FeedInfo)
+	go func() {
+		for {
+			tc := time.After(time.Duration(this.Interval) * time.Second)
+			chw <- this.Get()
+			<-tc
+		}
+	}()
+	this.C = chw
+	return chw
 }
 
 func (this *SourceMediawiki) Get() (rst []*FeedInfo) {

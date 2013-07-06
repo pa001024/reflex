@@ -1,53 +1,51 @@
 SHELL = bash
 
-all: clean windows windows32 linux linux32 darwin32 darwin
+NAME=t
+
+all: clean init windows windows32 linux linux32 darwin32 darwin
+
+init:
+	go get
 windows:
 	export GOOS=windows &&\
 	export GOARCH=amd64 &&\
 	export GOCHAR=6 &&\
 	export GOEXE=.exe &&\
-	cd main&&\
-	go build -o ../bin/windows-amd64/t.exe
+	go build -o ../bin/windows-amd64/${NAME}.exe
 windows32:
 	export GOOS=windows &&\
 	export GOARCH=386 &&\
 	export GOCHAR=8 &&\
 	export GOEXE=.exe &&\
-	cd main&&\
-	go build -o ../bin/windows-386/t.exe
+	go build -o ../bin/windows-386/${NAME}.exe
 linux:
 	export GOOS=linux &&\
 	export GOARCH=amd64 &&\
 	export GOCHAR=6 &&\
 	export GOEXE=.exe &&\
-	cd main&&\
-	go build -o ../bin/linux-amd64/t
+	go build -o ../bin/linux-amd64/${NAME}
 linux32:
 	export GOOS=linux &&\
 	export GOARCH=386 &&\
 	export GOCHAR=8 &&\
 	export GOEXE= &&\
-	cd main&&\
-	go build -o ../bin/linux-386/t
+	go build -o ../bin/linux-386/${NAME}
 darwin32:
 	export GOOS=darwin &&\
 	export GOARCH=386 &&\
 	export GOCHAR=8 &&\
 	export GOEXE= &&\
-	cd main&&\
-	go build -o ../bin/darwin-386/t
+	go build -o ../bin/darwin-386/${NAME}
 darwin:
 	export GOOS=darwin &&\
 	export GOARCH=amd64 &&\
 	export GOCHAR=6 &&\
 	export GOEXE= &&\
-	cd main&&\
-	go build -o ../bin/darwin-amd64/t
+	go build -o ../bin/darwin-amd64/${NAME}
 
 test:
-	cd main&&\
-	go build -o ../t.exe
-	./t
+	go build -o ../${NAME}.exe
+	./${NAME}
 
 clean:
-	rm -rf t.exe t bin
+	rm -rf ${NAME}.exe ${NAME} bin

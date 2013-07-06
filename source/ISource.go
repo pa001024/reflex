@@ -2,7 +2,7 @@ package source
 
 import (
 	"encoding/json"
-	"github.com/pa001024/MoeCron/util"
+	"github.com/pa001024/MoeWorker/util"
 	"time"
 )
 
@@ -34,21 +34,6 @@ type Source struct { // 配置持久模板
 }
 
 func (this *Source) GetId() (rst string) { return this.Name }
-func (this *Source) super_GetChan() <-chan []*FeedInfo {
-	if this.C != nil {
-		return this.C
-	}
-	chw := make(chan []*FeedInfo)
-	go func() {
-		for {
-			tc := time.After(time.Duration(this.Interval) * time.Second)
-			chw <- this.Get()
-			<-tc
-		}
-	}()
-	this.C = chw
-	return chw
-}
 
 func New(name string, b []byte) (rst ISource) {
 	obj := &Source{}

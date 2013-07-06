@@ -1,10 +1,10 @@
 package daemon
 
 import (
-	"github.com/pa001024/MoeCron/filter"
-	"github.com/pa001024/MoeCron/source"
-	"github.com/pa001024/MoeCron/target"
-	"github.com/pa001024/MoeCron/util"
+	"github.com/pa001024/MoeWorker/filter"
+	"github.com/pa001024/MoeWorker/source"
+	"github.com/pa001024/MoeWorker/target"
+	"github.com/pa001024/MoeWorker/util"
 	"time"
 )
 

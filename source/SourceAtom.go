@@ -2,7 +2,7 @@ package source
 
 import (
 	"encoding/xml"
-	"github.com/pa001024/MoeCron/util"
+	"github.com/pa001024/MoeWorker/util"
 	"net/http"
 	"time"
 )
@@ -34,7 +34,19 @@ type SourceAtom struct { // Atom 实现接口ISource
 }
 
 func (this *SourceAtom) GetChan() <-chan []*FeedInfo {
-	return this.super_GetChan()
+	if this.C != nil {
+		return this.C
+	}
+	chw := make(chan []*FeedInfo)
+	go func() {
+		for {
+			tc := time.After(time.Duration(this.Interval) * time.Second)
+			chw <- this.Get()
+			<-tc
+		}
+	}()
+	this.C = chw
+	return chw
 }
 
 func (this *SourceAtom) Get() (rst []*FeedInfo) {

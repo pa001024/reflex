@@ -2,7 +2,7 @@ package filter
 
 import (
 	"bytes"
-	"github.com/pa001024/MoeCron/source"
+	"github.com/pa001024/MoeWorker/source"
 	"text/template"
 )
 

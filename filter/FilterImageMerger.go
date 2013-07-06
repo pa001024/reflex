@@ -13,7 +13,7 @@ package filter
 
 import (
 	"code.google.com/p/freetype-go/freetype"
-	"github.com/pa001024/MoeCron/source"
+	"github.com/pa001024/MoeWorker/source"
 )
 
 type FilterImageMerger struct { // 图片合并

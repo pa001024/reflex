@@ -24,7 +24,6 @@ package source
 
 import (
 	"encoding/json"
-	"encoding/xml"
 	"github.com/pa001024/MoeCron/util"
 	"net/http"
 	"net/url"
@@ -51,16 +50,7 @@ type SourceMediawiki struct { // Mediawiki 实现接口ISource
 }
 
 func (this *SourceMediawiki) GetChan() <-chan []*FeedInfo {
-	if this.C != nil {
-		return this.C
-	}
-	chw := make(chan []*FeedInfo)
-	t := time.NewTimer(time.Duration(this.Interval) * time.Second)
-	go func() {
-		<-t.C
-		chw <- this.Get()
-	}()
-	return chw
+	return this.super_GetChan()
 }
 
 func (this *SourceMediawiki) Get() (rst []*FeedInfo) {
@@ -90,18 +80,6 @@ func (this *SourceMediawiki) Get() (rst []*FeedInfo) {
 		rst = append(rst, fv)
 		fetched++
 	}
-	return
-}
-
-func (this *SourceMediawiki) FetchFeed() (rst *FeedRSS) {
-	res, err := http.Get(this.FeedUrl)
-	if err != nil {
-		util.Log("FetchFeed Fail", err)
-		return
-	}
-	defer res.Body.Close()
-	rst = &FeedRSS{}
-	xml.NewDecoder(res.Body).Decode(rst)
 	return
 }
 

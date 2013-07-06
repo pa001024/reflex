@@ -34,16 +34,7 @@ type SourceAtom struct { // Atom 实现接口ISource
 }
 
 func (this *SourceAtom) GetChan() <-chan []*FeedInfo {
-	if this.C != nil {
-		return this.C
-	}
-	chw := make(chan []*FeedInfo)
-	t := time.NewTimer(time.Duration(this.Interval) * time.Second)
-	go func() {
-		<-t.C
-		chw <- this.Get()
-	}()
-	return chw
+	return this.super_GetChan()
 }
 
 func (this *SourceAtom) Get() (rst []*FeedInfo) {

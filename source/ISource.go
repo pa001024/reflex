@@ -33,6 +33,23 @@ type Source struct { // 配置持久模板
 	DoUpdateBeforeStart bool             `json:"do_update_before_start"` // 不更新程序启动之前的条目
 }
 
+func (this *Source) GetId() (rst string) { return this.Name }
+func (this *Source) super_GetChan() <-chan []*FeedInfo {
+	if this.C != nil {
+		return this.C
+	}
+	chw := make(chan []*FeedInfo)
+	go func() {
+		for {
+			tc := time.After(time.Duration(this.Interval) * time.Second)
+			chw <- this.Get()
+			<-tc
+		}
+	}()
+	this.C = chw
+	return chw
+}
+
 func New(name string, b []byte) (rst ISource) {
 	obj := &Source{}
 	err := json.Unmarshal(b, obj)
@@ -40,32 +57,27 @@ func New(name string, b []byte) (rst ISource) {
 		util.Log("JSON Parse Error", err)
 		return
 	}
+	obj.Name = name
+	if !obj.DoUpdateBeforeStart {
+		obj.LastUpdate = time.Now()
+	}
 	switch obj.Type { // TODO: 使用反射替代这么啰嗦的初始化
 	case "atom", "atomfeed":
 		dst := &SourceAtom{}
 		json.Unmarshal(b, dst)
-		dst.Name = name
-		if !dst.DoUpdateBeforeStart {
-			dst.LastUpdate = time.Now()
-		}
-		util.Log("source.atom \"" + name + "\" Loaded.")
+		rst = dst
 	case "rss", "rssfeed":
 		dst := &SourceRSS{}
 		json.Unmarshal(b, dst)
-		dst.Name = name
-		if !dst.DoUpdateBeforeStart {
-			dst.LastUpdate = time.Now()
-		}
-		util.Log("source.rss \"" + name + "\" Loaded.")
+		rst = dst
 	case "mediawiki", "wikifeed", "wiki":
 		dst := &SourceMediawiki{}
 		json.Unmarshal(b, dst)
-		dst.Name = name
-		if !dst.DoUpdateBeforeStart {
-			dst.LastUpdate = time.Now()
-		}
 		rst = dst
-		util.Log("source.mediawiki \"" + name + "\" Loaded.")
+	default:
+		util.Log("source." + obj.Type + " \"" + name + "\" not exists.")
+		return
 	}
+	util.Log("source." + obj.Type + " \"" + name + "\" Loaded.")
 	return
 }

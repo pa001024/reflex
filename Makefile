@@ -1,7 +1,5 @@
 SHELL = bash
 
-
-
 all: clean windows windows32 linux linux32 darwin32 darwin
 windows:
 	export GOOS=windows &&\

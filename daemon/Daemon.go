@@ -86,6 +86,7 @@ func (this *Daemon) DoAction(tv target.ITarget, act *target.TargetMethod, src []
 					<-time.After(20 * time.Second) // 防止刷爆 TODO: 移到配置文件
 					rtv.Send(&rp)
 				}
+				<-time.After(20 * time.Second) // 防止刷爆 TODO: 移到配置文件
 			}
 		}
 	}

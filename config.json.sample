@@ -20,9 +20,6 @@
 			"type":"regexp",
 			"regexp":"R18|血腥|暴力"
 		},
-		"url":{
-			"type":"url"
-		},
 		"zhconv":{
 			"type":"zhconv"
 		},
@@ -33,7 +30,7 @@
 		"weibobase":{
 			"type":"basic",
 			"max_length":100,
-			"format":"{{.Title}}: {{.Content}}... 阅读更多: {{.Link}}"
+			"format":"{{.Title}}: {{.Content}}... 阅读更多: {{urlquery .Link}}"
 		}
 	},
 	"target":{
@@ -45,7 +42,7 @@
 				{
 					"action":"update",
 					"source":["wiki"],
-					"filter":["moewikitext","url","weibobase","zhconv"],
+					"filter":["moewikitext","weibobase","zhconv"],
 					"limit":1
 				}
 			]
@@ -70,7 +67,7 @@
 				{
 					"action":"update",
 					"source":["wiki"],
-					"filter":["moewikitext","url","weibobase","zhconv"],
+					"filter":["moewikitext","weibobase","zhconv"],
 					"limit":1
 				}
 			]

@@ -43,12 +43,6 @@ func New(name string, b []byte) (rst IFilter) {
 		dst.Name = name
 		rst = dst
 		util.Log("filter.zhconv \"" + name + "\" Loaded.")
-	case "url":
-		dst := &FilterUrl{}
-		json.Unmarshal(b, dst)
-		dst.Name = name
-		rst = dst
-		util.Log("filter.url \"" + name + "\" Loaded.")
 	case "basic":
 		dst := &FilterBasic{}
 		json.Unmarshal(b, dst)

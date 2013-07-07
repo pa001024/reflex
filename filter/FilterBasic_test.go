@@ -11,7 +11,7 @@ const (
 		{
 			"type":"basic",
 			"max_length":100,
-			"format":"{{.Content}}... 阅读更多: {{.Link}}"
+			"format":"{{.Content}}... 阅读更多: {{urlquery .Link}}"
 		}
 		`
 )

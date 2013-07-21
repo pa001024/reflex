@@ -11,9 +11,12 @@ var (
 	IP string
 )
 
-func init() {
-	ip, _ := CheckIP()
-	IP = ip
+func GetIP() string {
+	if IP != "" {
+		return IP
+	}
+	IP, _ = CheckIP()
+	return IP
 }
 
 func CheckIP() (ip string, err error) {

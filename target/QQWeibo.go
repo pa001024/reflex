@@ -126,7 +126,7 @@ func (this *QQWeibo) PostStatus(api string, args *url.Values) (rst *QQWeiboStatu
 	args.Set("oauth_consumer_key", this.AppKey)
 	args.Set("access_token", this.Token)
 	args.Set("openid", this.OpenID)
-	args.Set("clientip", util.IP)
+	args.Set("clientip", util.GetIP())
 	res, err := http.PostForm("https://open.t.qq.com/api/t/"+api, *args)
 	if err != nil {
 		util.Log("Error on call", api+":", err)
@@ -178,7 +178,7 @@ func (this *QQWeibo) Upload(status string, pic io.Reader) (rst *QQWeiboStatus, e
 	formdata.WriteField("oauth_consumer_key", this.AppKey)
 	formdata.WriteField("access_token", this.Token)
 	formdata.WriteField("openid", this.OpenID)
-	formdata.WriteField("clientip", util.IP)
+	formdata.WriteField("clientip", util.GetIP())
 
 	formdata.WriteField("format", "json")
 	formdata.WriteField("content", status)

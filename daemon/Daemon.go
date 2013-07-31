@@ -8,6 +8,7 @@ import (
 	"time"
 )
 
+// 独立运行程序
 type Daemon struct {
 	Config *JobConfig
 	C      chan []*source.FeedInfo
@@ -36,7 +37,6 @@ Daemon程序处理流程:
 目标A(发表) -[回调]-↑
 
 */
-
 func (this *Daemon) Serve() {
 	for _, v := range this.Config.Source { // 异步(并行)获取source
 		go func() {

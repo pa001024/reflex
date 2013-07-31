@@ -11,6 +11,7 @@ var (
 	IP string
 )
 
+// 获取当前IP, 有缓存
 func GetIP() string {
 	if IP != "" {
 		return IP
@@ -19,6 +20,7 @@ func GetIP() string {
 	return IP
 }
 
+// 获取当前IP
 func CheckIP() (ip string, err error) {
 	res, err := http.Get("http://checkip.dyndns.com/")
 	if err != nil {
@@ -33,6 +35,7 @@ func CheckIP() (ip string, err error) {
 	return
 }
 
+// 下载图片
 func FetchImageAsStream(url string) (r io.Reader) {
 	res, err := http.Get(url)
 	if err != nil {

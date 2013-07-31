@@ -3,9 +3,12 @@ package util
 import (
 	"bytes"
 	"crypto/md5"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"log"
+	"net/url"
 	"path"
 	"runtime"
 	"strings"
@@ -18,6 +21,36 @@ var (
 const (
 	BASE62_ST = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
+
+// unsafe
+func ToJson(args ...interface{}) string {
+	l := len(args) - 1
+	m := make(map[string]interface{})
+	for i := 0; i < l; i += 2 {
+		m[args[i].(string)] = args[i+1]
+	}
+	bin, _ := json.Marshal(m)
+	if bin == nil {
+		return ""
+	}
+	return string(bin)
+}
+
+// unsafe
+func MustParseUrl(rawurl string) *url.URL {
+	y, err := url.Parse(rawurl)
+	if err != nil {
+		panic(err)
+	}
+	return y
+}
+
+// 解析js hex值 形如 \x00
+func DecodeJsHex(src string) string {
+	src = strings.Replace(src, `\x`, "", -1)
+	v, _ := hex.DecodeString(src)
+	return string(v)
+}
 
 // 使用前缀和后缀移除可嵌套的区块
 func RemoveBlock(src, perfix, suffix string) (rst string) {
@@ -50,6 +83,7 @@ func RemoveBlock(src, perfix, suffix string) (rst string) {
 	return buf.String()
 }
 
+// 快速Hash
 func HashCode(str string) (hash int) {
 	for _, v := range str {
 		hash = int(v) + (hash << 6) + (hash << 16) - hash
@@ -57,6 +91,7 @@ func HashCode(str string) (hash int) {
 	return hash & 0x7FFFFFFF
 }
 
+// 检查值是否在数组中
 func IsInArray(arr []string, sub string) bool {
 	for _, v := range arr {
 		if v == sub {
@@ -65,6 +100,8 @@ func IsInArray(arr []string, sub string) bool {
 	}
 	return false
 }
+
+// 检查数组元素是否重复
 func IsArrayDuplicate(arr []string, arr2 []string) bool {
 	if len(arr)*len(arr2) > 1000 {
 		return IsArrayDuplicateOpt(arr, arr2)
@@ -79,19 +116,34 @@ func IsArrayDuplicate(arr []string, arr2 []string) bool {
 	}
 	return false
 }
+
+// 检查数组元素是否重复 - 性能优化版(空间换时间)
 func IsArrayDuplicateOpt(arr []string, arr2 []string) bool {
-	// O((n1 log n1) + n2)
+	// O((n1 log n1) + n2) :: len(n2) > len(n1)
+	if len(arr) > len(arr2) {
+		arr, arr2 = arr2, arr
+	}
 	m := make(map[string]bool)
 	for _, v := range arr {
 		m[v] = true
 	}
 	for _, v := range arr2 {
-		if m[v] == true {
+		if m[v] {
 			return true
 		}
 	}
 	return false
 }
+
+// MD5 返回binary结果
+func Md5(src string) (rst string) {
+	h := md5.New()
+	io.WriteString(h, src)
+	rst = fmt.Sprintf("%s", h.Sum(nil))
+	return
+}
+
+// MD5 返回 hex结果
 func Md5String(src string) (rst string) {
 	h := md5.New()
 	io.WriteString(h, src)
@@ -99,15 +151,28 @@ func Md5String(src string) (rst string) {
 	return
 }
 
+// MD5 返回 hex结果大写
+func Md5StringX(src string) (rst string) {
+	h := md5.New()
+	io.WriteString(h, src)
+	rst = fmt.Sprintf("%X", h.Sum(nil))
+	return
+}
+
+// 转换字符串到int64
 func ToInt64(src string) (rst int64) {
 	for _, v := range src {
 		rst = rst*10 + int64(v-'0')
 	}
 	return
 }
+
+// 转换到字符串
 func ToString(src interface{}) string {
 	return fmt.Sprint(src)
 }
+
+// 新浪微博base62编码
 func Base62(src int64) (rst string) {
 	for {
 		a := src % 62
@@ -119,6 +184,8 @@ func Base62(src int64) (rst string) {
 	}
 	return rst
 }
+
+// 新浪微博base62解码
 func DeBase62(src string) (rst int64) {
 	for i, v := range src {
 		a := int64(strings.IndexRune(BASE62_ST, v))
@@ -130,6 +197,8 @@ func DeBase62(src string) (rst int64) {
 	}
 	return
 }
+
+// 新浪微博base62分组编码
 func Base62Url(mid string) (url string) {
 	const STEP = 7
 	for i := len(mid) - STEP; i > -STEP; i -= STEP {
@@ -141,6 +210,8 @@ func Base62Url(mid string) (url string) {
 	}
 	return
 }
+
+// 新浪微博base62分组解码
 func DeBase62Url(url string) (mid string) {
 	const STEP = 4
 	for i := len(url) - STEP; i > -STEP; i -= STEP {
@@ -153,17 +224,21 @@ func DeBase62Url(url string) (mid string) {
 	return
 }
 
+// 日志
 func Log(args ...interface{}) {
 	if DEBUG {
 		DebugLog(args...)
 	} else {
-		TestLog(args...)
+		ProcLog(args...)
 	}
 }
 
-func TestLog(args ...interface{}) {
+// 运行时日志
+func ProcLog(args ...interface{}) {
 	log.Println(args...)
 }
+
+// 调试时日志
 func DebugLog(args ...interface{}) {
 	fup, file, line, _ := runtime.Caller(2)
 	fu := runtime.FuncForPC(fup)

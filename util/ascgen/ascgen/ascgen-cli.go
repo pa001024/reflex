@@ -31,9 +31,9 @@ func main() {
 	switch ext {
 	default:
 		err = asc.ShowPng(os.Stdout, r, console, *pC)
-	case "jpg":
+	case ".jpg", ".jpeg":
 		err = asc.ShowJpg(os.Stdout, r, console, *pC)
-	case "gif":
+	case ".gif":
 		err = asc.ShowGif(os.Stdout, r, console, *pC)
 	}
 	if err != nil {

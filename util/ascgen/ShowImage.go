@@ -70,9 +70,7 @@ func ShowColor(iw io.Writer, img image.Image, console Console) {
 	s := img.Bounds().Size()
 	// 标高 = 结果高 * 宽高比 = (原高 / 原宽 * 标宽) * 宽高比
 	h := uint(float64(s.Y) / float64(s.X) * float64(w) * console.Ratio())
-	println("loaded")
 	m := resize.Resize(w, h, img, resize.Bicubic)
-	println("resized")
 	for y := 0; y < int(h); y++ {
 		for x := (0); x < int(w); x++ {
 			r, g, b, a := m.At(x, y).RGBA()
@@ -161,7 +159,11 @@ func GetConsoleColor(r, g, b uint32) (m int, fg ct.Color, fgl bool, bg ct.Color,
 		n++
 	}
 	if n > 0 {
-		m = 63 - (m / n)
+		m = m * 2 / n // 因为最高混合比(50%)的限制 先*2 然后削掉
+	}
+	m = 63 - m
+	if m < 0 {
+		m = 0
 	}
 	fg, fgl = fc.ccolor()
 	return

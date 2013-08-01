@@ -165,6 +165,9 @@ func GetConsoleColor(r, g, b uint32) (m int, fg ct.Color, fgl bool, bg ct.Color,
 	if m < 0 {
 		m = 0
 	}
+	if m > 63 {
+		m = 63
+	}
 	fg, fgl = fc.ccolor()
 	return
 }

@@ -3,9 +3,6 @@ package image
 import (
 	"bufio"
 	"image"
-	"image/gif"
-	"image/jpeg"
-	"image/png"
 	"io"
 
 	ct "github.com/daviddengcn/go-colortext"
@@ -22,43 +19,6 @@ func (c Console) Width() uint {
 }
 func (c Console) Ratio() float64 {
 	return float64(c.FontW) / float64(c.FontH)
-}
-
-func ShowGif(iw io.Writer, r io.Reader, console Console, useColor bool) (err error) {
-	img, err := gif.Decode(r)
-	if err != nil {
-		return
-	}
-	if useColor {
-		ShowColor(iw, img, console)
-	} else {
-		Show(iw, img, console)
-	}
-	return
-}
-func ShowJpg(iw io.Writer, r io.Reader, console Console, useColor bool) (err error) {
-	img, err := jpeg.Decode(r)
-	if err != nil {
-		return
-	}
-	if useColor {
-		ShowColor(iw, img, console)
-	} else {
-		Show(iw, img, console)
-	}
-	return
-}
-func ShowPng(iw io.Writer, r io.Reader, console Console, useColor bool) (err error) {
-	img, err := png.Decode(r)
-	if err != nil {
-		return
-	}
-	if useColor {
-		ShowColor(iw, img, console)
-	} else {
-		Show(iw, img, console)
-	}
-	return
 }
 
 const clist64 = "MMMNNBBEEFRRWW9956OGQDKU33ICJXV7i11jjllllrr;;;;:::,,,,.....     "
@@ -180,6 +140,29 @@ func sw(b bool, l, r uint32) uint32 {
 	return r
 }
 
+// 将图片渲染到彩色文字
+func ShowSimpleColor(iw io.Writer, img image.Image, console Console) {
+	// Bicubic缩放图片到控制台屏幕大小
+	w := console.ScreenW - 1 // 标宽 换行符竟然也算一个?
+	s := img.Bounds().Size()
+	// 标高 = 结果高 * 宽高比 = (原高 / 原宽 * 标宽) * 宽高比
+	h := uint(float64(s.Y) / float64(s.X) * float64(w) * console.Ratio())
+	m := resize.Resize(w, h, img, resize.Bicubic)
+	for y := 0; y < int(h); y++ {
+		for x := (0); x < int(w); x++ {
+			r, g, b, a := m.At(x, y).RGBA()
+			r, g, b, a = r>>10, g>>10, b>>10, a>>10 // 转换到6位色 0~63
+			r, g, b = r*a/63, g*a/63, b*a/63        // Alpha混合
+			_, _, _, bg, bgl := GetConsoleColor(r, g, b)
+			ct.ChangeColor(bg, bgl, ct.None, false)
+			cindex := (r + g + b) / 3
+			io.WriteString(iw, clist64[cindex:cindex+1])
+		}
+		io.WriteString(iw, "\n")
+	}
+	ct.ResetColor()
+}
+
 // 将图片渲染到文字
 func Show(iw io.Writer, img image.Image, console Console) {
 	// Bicubic缩放图片到控制台屏幕大小
@@ -192,7 +175,7 @@ func Show(iw io.Writer, img image.Image, console Console) {
 	for y := 0; y < int(h); y++ {
 		for x := (0); x < int(w); x++ {
 			r, g, b, a := m.At(x, y).RGBA()
-			cindex := (r + g + b) / 3 * a / 65536 / 256 / 4
+			cindex := (r + g + b) / 3 * a / 65535 / 256 / 4
 			io.WriteString(bw, clist64[cindex:cindex+1])
 		}
 		io.WriteString(bw, "\n")

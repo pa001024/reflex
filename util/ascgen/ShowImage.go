@@ -59,17 +59,53 @@ var (
 	}
 )
 
-type rgb1 struct{ r, g, b uint32 }
-type rgb2 struct{ r, g, b uint32 }
-type rgb6 struct{ r, g, b uint32 }
+// O(mn)渣算法 因为颜色没法排序
+func SearchBestColor(c rgb6) rgb1bm {
+	min, minV := int32(0x7fffffff), rgb1bm{}
+	for m := int32(0); m < 64; m++ {
+		for v, _ := range rgb1_c {
+			for _, i := range []int32{0, 31, 63} {
+				sr, sg, sb := (c.r - v.r*i*m/63), (c.g - v.g*i*m/63), (c.b - v.b*i*m/63)
+				sub := sr*sr + sg*sg + sb*sb // 方差
+				if sub == 0 {
+					return rgb1bm{v.r, v.g, v.b, i > 1, m}
+				}
+				if min > sub {
+					min = sub
+					minV = rgb1bm{v.r, v.g, v.b, i > 1, m}
+				}
+			}
+		}
+	}
+	return minV
+}
+
+type rgb1bm struct {
+	r, g, b int32
+	l       bool
+	m       int32
+}
+type rgb1 struct{ r, g, b int32 }
+type rgb2 struct{ r, g, b int32 }
+type rgb6 struct{ r, g, b int32 }
 type rgb1b struct {
-	r, g, b uint32
+	r, g, b int32
 	l       bool
 }
 
+func (r rgb1bm) rgb1b() rgb1b {
+	return rgb1b{r.r, r.g, r.b, r.l}
+}
+func (r rgb1bm) rgb6() rgb6 {
+	d := int32(31)
+	if r.l {
+		d = 63
+	}
+	return rgb6{r.r * d, r.g * d, r.b * d}
+}
 func (r rgb1b) ccolor() (ct.Color, bool) { return rgb1_c[rgb1{r.r, r.g, r.b}], r.l }
 func (r rgb1b) rgb6() rgb6 {
-	d := uint32(31)
+	d := int32(31)
 	if r.l {
 		d = 63
 	}
@@ -78,66 +114,30 @@ func (r rgb1b) rgb6() rgb6 {
 func (r rgb2) rgb1b() rgb1b {
 	return rgb1b{(r.r + 1) / 2, (r.g + 1) / 2, (r.b + 1) / 2, (r.r+r.g+r.b) > 3 || r.r > 1 || r.g > 1 || r.b > 1}
 }
-func (r rgb6) rgb2() rgb2          { return rgb2{(r.r + 16) / 32, (r.g + 16) / 32, (r.b + 16) / 32} }
-func (r rgb6) sub(d rgb6) rgb6     { return rgb6{r.r - d.r, r.g - d.g, r.b - d.b} }
-func (r rgb6) times(t uint32) rgb6 { return rgb6{r.r * t, r.g * t, r.b * t} }
+func (r rgb6) rgb2() rgb2         { return rgb2{(r.r + 16) / 32, (r.g + 16) / 32, (r.b + 16) / 32} }
+func (r rgb6) sub(d rgb6) rgb6    { return rgb6{r.r - d.r, r.g - d.g, r.b - d.b} }
+func (r rgb6) times(t int32) rgb6 { return rgb6{r.r * t, r.g * t, r.b * t} }
 
 func GetConsoleColor(r, g, b uint32) (m int, fg ct.Color, fgl bool, bg ct.Color, bgl bool) {
 	// 从6位颜色转换到2位颜色
-	h := rgb6{r, g, b}
+	h := rgb6{int32(r), int32(g), int32(b)}
 	// 背景色使用最接近的颜色
 	j := h.rgb2().rgb1b()
 	bg, bgl = j.ccolor()
 	// 仿色:
-	// 统计最高混合比: 字符'M' 50% 最低 字符' ' 0%
+	// 统计最高混合比: 字符'M' 50% (可能浮动) 最低 字符' ' 0%
 	// 理论可用率66% 最高精确度 6位色
-	// 设: 实色h = rgb6(12,56,31) = rgb2(0,2,1) = rgb1b(0,1,0,false) = rgb6(0,31,0)
-	//     补色f rgb6(x,y,z)
-	//     补色混合比 = (m/n)
-	// 则: h = (f * (m/n) + h.rgb1b/2
-	//   (rgb6(x,y,z)*n + rgb1b(0,1,0,false))/2 = rgb6(12,56,31)
-	//   rgb6(x,y,z)*n = rgb6(12,56,31)*2 - rgb6(0,31,0)
-	//   rgb6(x,y,z)*(m/63) = rgb6(24,81,62)
-	//   rgb2(1,2,2)*(m/63) = rgb1b(0,1,1,true)*(m/63) = rgb6(0,63,63)/63*m
-	//   {
-	//      rgb6(x,y,z) = rgb6(0,63,63) = h*2-h.rgb1b
-	//      m = (56+31)/2=44 = (Z[h](h.?>1)/C[h](h.?>1))
-	//   }
+	// 设: 实色 = h , 底色 = j , 补色 = f , 表色 = l , 补色混合比 = m
+	// 则: h = (f + j) / 2
+	//     f = 2h - j
+	//     f ≈ l * m
+	//     l = [rgb2(0,0,0),rgb2(2,2,2)]
+	//     m = [0,63]
 	f := h.times(2).sub(j.rgb6())
-	fc := f.rgb2().rgb1b()
-	m, n := 0, 0
-	if fc.r > 0 {
-		m += int(f.r)
-		n++
-	}
-	if fc.g > 0 {
-		m += int(f.g)
-		n++
-	}
-	if fc.b > 0 {
-		m += int(f.b)
-		n++
-	}
-	if n > 0 {
-		m = m * 2 / n // 因为最高混合比(50%)的限制 先*2 然后削掉
-	}
-	m = 63 - m
-	if m < 0 {
-		m = 0
-	}
-	if m > 63 {
-		m = 63
-	}
-	fg, fgl = fc.ccolor()
+	lm := SearchBestColor(f)
+	m = int(lm.m) / 2 // 字符'M' 50%
+	fg, fgl = lm.rgb1b().ccolor()
 	return
-}
-
-// 实用小函数 模拟 b?l:r
-func sw(b bool, l, r uint32) uint32 {
-	if b {
-		return l
-	}
-	return r
 }
 
 // 将图片渲染到彩色文字

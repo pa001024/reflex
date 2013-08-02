@@ -2,11 +2,32 @@ package image
 
 import (
 	"fmt"
+	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"io"
 	"os"
 	"testing"
 
 	ct "github.com/daviddengcn/go-colortext"
 )
+
+func ShowFile(iw io.Writer, r io.Reader, console Console, useColor, simple bool) (err error) {
+	img, _, err := image.Decode(r)
+	if err != nil {
+		return
+	}
+	switch {
+	case useColor && simple:
+		ShowSimpleColor(iw, img, console)
+	case useColor && !simple:
+		ShowColor(iw, img, console)
+	default:
+		Show(iw, img, console)
+	}
+	return
+}
 
 func TestShow(t *testing.T) {
 	f, err := os.Open("pic.jpg")
@@ -14,18 +35,18 @@ func TestShow(t *testing.T) {
 		t.Fail()
 		return
 	}
-	err = ShowJpg(os.Stdout, f, Console{6, 14, 120}, false)
+	err = ShowFile(os.Stdout, f, Console{6, 14, 120}, false, false)
 	if err != nil {
 		fmt.Println(err)
 	}
 }
 
 func TestShowColor(t *testing.T) {
-	f, err := os.Open("cc.png")
+	f, err := os.Open("t.gif")
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = ShowPng(os.Stdout, f, Console{6, 14, 120}, true)
+	err = ShowFile(os.Stdout, f, Console{6, 14, 120}, true, false)
 	if err != nil {
 		t.Fatal(err)
 	}

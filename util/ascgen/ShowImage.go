@@ -2,12 +2,15 @@ package image
 
 import (
 	"bufio"
+	"fmt"
 	"image"
 	"io"
 
 	ct "github.com/daviddengcn/go-colortext"
 	"github.com/nfnt/resize"
 )
+
+var _ fmt.State
 
 type Console struct {
 	FontW, FontH uint // 单个字符的像素大小 = 屏幕像素大小/字符行数
@@ -39,7 +42,7 @@ func ShowColor(iw io.Writer, img image.Image, console Console) {
 			m, fg, fgl, bg, bgl := GetConsoleColor(r, g, b)
 			ct.ChangeColor(fg, fgl, bg, bgl)
 			// cindex := (r + g + b) / 3
-			io.WriteString(iw, clist64[m:m+1])
+			io.WriteString(iw, clist64[int(m):int(m)+1])
 		}
 		io.WriteString(iw, "\n")
 	}
@@ -58,27 +61,6 @@ var (
 		rgb1{1, 0, 1}: ct.Magenta,
 	}
 )
-
-// O(mn)渣算法 因为颜色没法排序
-func SearchBestColor(c rgb6) rgb1bm {
-	min, minV := int32(0x7fffffff), rgb1bm{}
-	for m := int32(0); m < 64; m++ {
-		for v, _ := range rgb1_c {
-			for _, i := range []int32{0, 31, 63} {
-				sr, sg, sb := (c.r - v.r*i*m/63), (c.g - v.g*i*m/63), (c.b - v.b*i*m/63)
-				sub := sr*sr + sg*sg + sb*sb // 方差
-				if sub == 0 {
-					return rgb1bm{v.r, v.g, v.b, i > 1, m}
-				}
-				if min > sub {
-					min = sub
-					minV = rgb1bm{v.r, v.g, v.b, i > 1, m}
-				}
-			}
-		}
-	}
-	return minV
-}
 
 type rgb1bm struct {
 	r, g, b int32
@@ -114,16 +96,17 @@ func (r rgb1b) rgb6() rgb6 {
 func (r rgb2) rgb1b() rgb1b {
 	return rgb1b{(r.r + 1) / 2, (r.g + 1) / 2, (r.b + 1) / 2, (r.r+r.g+r.b) > 3 || r.r > 1 || r.g > 1 || r.b > 1}
 }
-func (r rgb6) rgb2() rgb2         { return rgb2{(r.r + 16) / 32, (r.g + 16) / 32, (r.b + 16) / 32} }
+func (r rgb6) rgb2() rgb2         { return rgb2{(r.r + 16) / 31, (r.g + 16) / 31, (r.b + 16) / 31} }
 func (r rgb6) sub(d rgb6) rgb6    { return rgb6{r.r - d.r, r.g - d.g, r.b - d.b} }
 func (r rgb6) times(t int32) rgb6 { return rgb6{r.r * t, r.g * t, r.b * t} }
+func (r rgb6) avg(d rgb6) rgb6    { return rgb6{(r.r + d.r) / 2, (r.g + d.g) / 2, (r.b + d.b) / 2} }
 
-func GetConsoleColor(r, g, b uint32) (m int, fg ct.Color, fgl bool, bg ct.Color, bgl bool) {
-	// 从6位颜色转换到2位颜色
+func GetConsoleColor(r, g, b uint32) (m int32, fg ct.Color, fgl bool, bg ct.Color, bgl bool) {
+	// 实色
 	h := rgb6{int32(r), int32(g), int32(b)}
 	// 背景色使用最接近的颜色
-	j := h.rgb2().rgb1b()
-	bg, bgl = j.ccolor()
+	j := h.rgb2().rgb1b().rgb6()
+	bg, bgl = j.rgb2().rgb1b().ccolor()
 	// 仿色:
 	// 统计最高混合比: 字符'M' 50% (可能浮动) 最低 字符' ' 0%
 	// 理论可用率66% 最高精确度 6位色
@@ -133,10 +116,37 @@ func GetConsoleColor(r, g, b uint32) (m int, fg ct.Color, fgl bool, bg ct.Color,
 	//     f ≈ l * m
 	//     l = [rgb2(0,0,0),rgb2(2,2,2)]
 	//     m = [0,63]
-	f := h.times(2).sub(j.rgb6())
-	lm := SearchBestColor(f)
-	m = int(lm.m) / 2 // 字符'M' 50%
-	fg, fgl = lm.rgb1b().ccolor()
+	// f := h.times(2).sub(j.rgb6())
+	// 纯色优化
+	if h == j {
+		m = 63
+		return
+	}
+	min, minV := int32(0x7fffffff), rgb1bm{}
+cop:
+	for v, _ := range rgb1_c {
+		for m = int32(0); m < 31; m++ {
+			n := 31 - m // 差距越小灰度索引越大 32 = 64*50% 最高混合比
+			for _, i := range []int32{31, 63} {
+				f := (rgb6{v.r * i * n / 63, v.g * i * n / 63, v.b * i * n / 63}).avg(j)
+				sr, sg, sb := (h.r - f.r), (h.g - f.g), (h.b - f.b)
+				sub := sr*sr + sg*sg + sb*sb // 差方
+				// fmt.Printf("h=%v f=%v v=%v i=%v srgb=(%v,%v,%v) m=%v n=%v sub=%v\n", h, f, v, i, sr, sg, sb, m, n, sub)
+				// 完美混合
+				if sub == 0 {
+					minV = rgb1bm{v.r, v.g, v.b, i > 31, m}
+					break cop // 249,240,225 -> 62 60 56 -> 63 63 63 -(-)> -1 -3 -7 -> 0 31 31 * 13 / 31
+				}
+				if min > sub {
+					min = sub
+					minV = rgb1bm{v.r, v.g, v.b, i > 31, m}
+				}
+			}
+		}
+	}
+	// fmt.Println(h, j, minV)
+	m = minV.m * 2
+	fg, fgl = minV.rgb1b().ccolor()
 	return
 }
 

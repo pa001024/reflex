@@ -2,32 +2,12 @@ package image
 
 import (
 	"fmt"
-	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
 	"io"
 	"os"
 	"testing"
 
 	ct "github.com/daviddengcn/go-colortext"
 )
-
-func ShowFile(iw io.Writer, r io.Reader, console Console, useColor, simple bool) (err error) {
-	img, _, err := image.Decode(r)
-	if err != nil {
-		return
-	}
-	switch {
-	case useColor && simple:
-		ShowSimpleColor(iw, img, console)
-	case useColor && !simple:
-		ShowColor(iw, img, console)
-	default:
-		Show(iw, img, console)
-	}
-	return
-}
 
 func TestShow(t *testing.T) {
 	f, err := os.Open("pic.jpg")

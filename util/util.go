@@ -7,15 +7,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/url"
 	"path"
 	"runtime"
 	"strings"
-)
-
-var (
-	DEBUG = false
 )
 
 const (
@@ -224,24 +219,23 @@ func DeBase62Url(url string) (mid string) {
 	return
 }
 
-// 日志
-func Log(args ...interface{}) {
-	if DEBUG {
-		DebugLog(args...)
-	} else {
-		ProcLog(args...)
+// 出错崩溃
+func Try(e error) {
+	if e != nil {
+		fup, file, line, _ := runtime.Caller(1)
+		fu := runtime.FuncForPC(fup)
+		panic(fmt.Sprintf("%s%s\n   at %s(%s:%v)", string([]byte{0xb, 0xad, 0xca, 0xfe}), e.Error(), fu.Name(), path.Base(file), line))
 	}
 }
 
-// 运行时日志
-func ProcLog(args ...interface{}) {
-	log.Println(args...)
-}
-
-// 调试时日志
-func DebugLog(args ...interface{}) {
-	fup, file, line, _ := runtime.Caller(2)
-	fu := runtime.FuncForPC(fup)
-	log.Println(args...)
-	fmt.Println("        at", fu.Name()+"("+path.Base(file)+":"+ToString(line)+")")
+// 供给panic后恢复
+func Catch() {
+	if e := recover(); e != nil {
+		es := fmt.Sprint(e)
+		if es[:4] == string([]byte{0xb, 0xad, 0xca, 0xfe}) {
+			fmt.Println(es[4:])
+		} else {
+			panic(e)
+		}
+	}
 }

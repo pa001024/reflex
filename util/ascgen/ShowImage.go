@@ -3,11 +3,31 @@ package image
 import (
 	"bufio"
 	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"io"
 
 	ct "github.com/daviddengcn/go-colortext"
 	"github.com/nfnt/resize"
 )
+
+// 从文件读取
+func ShowFile(iw io.Writer, r io.Reader, console Console, useColor, simple bool) (err error) {
+	img, _, err := image.Decode(r)
+	if err != nil {
+		return
+	}
+	switch {
+	case useColor && simple:
+		ShowSimpleColor(iw, img, console)
+	case useColor && !simple:
+		ShowColor(iw, img, console)
+	default:
+		Show(iw, img, console)
+	}
+	return
+}
 
 type Console struct {
 	FontW, FontH uint // 单个字符的像素大小 = 屏幕像素大小/字符行数

@@ -239,3 +239,9 @@ func Catch() {
 		}
 	}
 }
+
+// 合并Try Catch
+func TryCatch(i func() error, o func()) {
+	defer o()
+	Try(i())
+}

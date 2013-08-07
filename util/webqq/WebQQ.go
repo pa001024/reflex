@@ -12,8 +12,8 @@ import (
 
 // 三个日志级别
 var (
-	DEBUG = util.NewLogger(false, "[DEBUG]")
-	WARN  = util.NewLogger(true, "[WARN] ")
+	DEBUG = util.NewLogger(false, "[DEBUG] ")
+	WARN  = util.NewLogger(true, "[WARNING] ")
 	INFO  = util.NewLogger(true, "[INFO] ")
 )
 
@@ -34,7 +34,7 @@ func NewWebQQ(uid, pwd string) (this *WebQQ) {
 	jar, _ := cookiejar.New(nil)
 	this = &WebQQ{
 		client:    &http.Client{nil, nil, jar},
-		Id:        uid,// 可以是邮箱或者QQ号
+		Id:        uid, // 可以是邮箱或者QQ号
 		PasswdMd5: pwd,
 		ClientId:  fmt.Sprint(rand.Int31n(90000000) + 10000000),
 	}
@@ -75,11 +75,11 @@ func (this *WebQQ) GenPwd(salt, code string) string {
 }
 
 //
-func (this *WebQQ) SendTo(uid) {
+func (this *WebQQ) SendTo(qid string) {
 
 }
 
 // 开始接受消息并发送到channel
 func (this *WebQQ) Start() {
-	this.
+	// make(chan )
 }

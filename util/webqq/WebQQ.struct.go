@@ -112,7 +112,7 @@ type Message struct {
 }
 
 func (this *Message) Filter() {
-	arr := make([]string, 0, len(this.Content-1))
+	arr := make([]string, 0, len(this.Content)-1)
 	for _, v := range this.Content {
 		if v != "" {
 			arr = append(arr, v)

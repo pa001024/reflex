@@ -3,24 +3,19 @@ package webqq
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/url"
-	"os"
 	"regexp"
 	"strings"
 
 	"github.com/pa001024/MoeWorker/util"
-	asc "github.com/pa001024/MoeWorker/util/ascgen"
 )
 
 const (
 	WEBQQ_APPID = "1003903"
 	WEBQQ_TYPE  = "10"
 	PTLOGIN_URL = "https://ssl.ptlogin2.qq.com/"
-	CAPTCHA_URL = "http://captcha.qq.com/"
-	CHANNEL_URL = "http://d.web2.qq.com/channel/"
 )
 
 // [1]检查前获取sig, 永久
@@ -68,26 +63,6 @@ func (this *WebQQ) ptlogin_check() (codetoken, code, pwd string, err error) {
 	}
 	pwd = this.GenPwd(salt, code)
 	DEBUG.Log("[ptlogin_check] Success GenPwd", pwd)
-	return
-}
-
-// [2.5]获取验证码, 可重复
-func (this *WebQQ) ptlogin_getimage(vCode string) (code string, err error) {
-	res, err := this.client.Get(CAPTCHA_URL + "getimage?" + (url.Values{"uin": {this.Id}, "aid": {WEBQQ_APPID}, "r": {fmt.Sprint(rand.ExpFloat64())}, "vc_type": {vCode}}).Encode())
-	if err != nil {
-		return
-	}
-	defer res.Body.Close()
-	rw, err := os.Create("vc.jpg")
-	if err != nil {
-		return
-	}
-	io.Copy(rw, res.Body)
-	rw.Seek(0, 0)
-	asc.ShowFile(os.Stdout, rw, asc.Console{6, 14, 120}, true, false) // TODO: 缺乏配置
-	rw.Close()
-	fmt.Print("Enter Verify Code: ")
-	fmt.Scanf("%s", &code)
 	return
 }
 

@@ -39,7 +39,7 @@ func New(name string, b []byte) (rst ISource) {
 	obj := &Source{}
 	err := json.Unmarshal(b, obj)
 	if err != nil {
-		util.Log("JSON Parse Error", err)
+		util.ERROR.Err("JSON Parse Error", err)
 		return
 	}
 	obj.Name = name
@@ -60,9 +60,9 @@ func New(name string, b []byte) (rst ISource) {
 		json.Unmarshal(b, dst)
 		rst = dst
 	default:
-		util.Log("source." + obj.Type + " \"" + name + "\" not exists.")
+		util.WARN.Logf("source.%s \"%s\" not exists.", obj.Type, name)
 		return
 	}
-	util.Log("source." + obj.Type + " \"" + name + "\" Loaded.")
+	util.INFO.Logf("source..%s \"%s\" Loaded.", obj.Type, name)
 	return
 }

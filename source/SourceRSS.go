@@ -65,7 +65,7 @@ func (this *SourceRSS) Get() (rst []*FeedInfo) {
 		}
 		d, err := time.Parse(time.RFC1123, v.Updated)
 		if err != nil {
-			util.Log("Time Parse Fail", err)
+			util.WARN.Err("Time Parse Fail", err)
 			continue
 		}
 		if d.Sub(last) <= 0 { // It means if feed.Updated >= this.LastUpdate
@@ -95,7 +95,7 @@ func (this *SourceRSS) GetByFeedRSSItem(v *FeedRSSItem) (rst *FeedInfo) {
 func (this *SourceRSS) FetchFeed() (rst *FeedRSS) {
 	res, err := http.Get(this.FeedUrl)
 	if err != nil {
-		util.Log("FetchFeed Fail")
+		util.ERROR.Err("FetchFeed Fail", err)
 		return
 	}
 	defer res.Body.Close()

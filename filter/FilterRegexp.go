@@ -18,7 +18,7 @@ func (this *FilterRegexp) Process(src []*source.FeedInfo) (dst []*source.FeedInf
 	if this.compFilter == nil {
 		reg, err := regexp.Compile(this.RegexpText)
 		if err != nil {
-			util.Log("Warning: Parse Regexp Fail", err)
+			util.ERROR.Err("Parse Regexp Fail", err)
 			return src
 		}
 		this.compFilter = reg

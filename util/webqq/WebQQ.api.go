@@ -75,7 +75,7 @@ type Result struct {
 
 // 获取群成员信息
 func (this *WebQQ) get_group_member_stat2(gcode GCode) (v *ResultGroupMemberStat, err error) {
-	DEBUG.Logf("get_group_member_stat2(gcode = %v)", gcode)
+	util.DEBUG.Logf("get_group_member_stat2(gcode = %v)", gcode)
 	data, err := this.api("get_group_member_stat2", "gcode", gcode)
 	if err != nil {
 		err = json.Unmarshal(data, v)
@@ -103,7 +103,7 @@ type ResultGroupMemberStat struct {
  {"retcode":10001} // 没有
 */
 func (this *WebQQ) get_self_business_card2(gcode string) (v *ResultSelfBusinessCard, err error) {
-	DEBUG.Logf("get_self_business_card2(gcode = %v)", gcode)
+	util.DEBUG.Logf("get_self_business_card2(gcode = %v)", gcode)
 	data, err := this.api("get_self_business_card2", "gcode", gcode)
 	if err != nil {
 		err = json.Unmarshal(data, v)
@@ -125,7 +125,7 @@ type ResultSelfBusinessCard struct {
  retainKey:memo,gcode
 */
 func (this *WebQQ) get_group_info(gcode, retainKey string) (v *ResultGroupInfo, err error) {
-	DEBUG.Logf("get_group_info(gcode = %v, retainKey = %v)", gcode, retainKey)
+	util.DEBUG.Logf("get_group_info(gcode = %v, retainKey = %v)", gcode, retainKey)
 	data, err := this.api("get_group_info", "gcode", gcode, "retainKey", retainKey)
 	if err != nil {
 		err = json.Unmarshal(data, v)
@@ -149,7 +149,7 @@ type ResultGroupInfo struct {
 
 // 获取群详细信息
 func (this *WebQQ) get_group_info_ext2(gcode string) (v *ResultGroupInfoExt, err error) {
-	DEBUG.Logf("get_group_info_ext2(gcode = %v)", gcode)
+	util.DEBUG.Logf("get_group_info_ext2(gcode = %v)", gcode)
 	data, err := this.api("get_group_info_ext2", "gcode", gcode)
 	if err != nil {
 		err = json.Unmarshal(data, v)
@@ -286,7 +286,7 @@ type VipInfo struct {
  type: 好友=1 群=4
 */
 func (this *WebQQ) get_friend_uin2(tuin Uin, type_ string) (v *ResultFriendUin, err error) {
-	DEBUG.Logf("get_friend_uin2(tuin = %v, type = %v)", tuin, type_)
+	util.DEBUG.Logf("get_friend_uin2(tuin = %v, type = %v)", tuin, type_)
 	data, err := this.api("get_friend_uin2", "tuin", tuin, "type", type_)
 	if err != nil {
 		err = json.Unmarshal(data, v)
@@ -311,7 +311,7 @@ type ResultFriendUin struct {
 
 // 获取好友信息
 func (this *WebQQ) get_friend_info2(tuin string) (v *ResultFriendInfo, err error) {
-	DEBUG.Logf("get_friend_uin2(tuin = %v)", tuin)
+	util.DEBUG.Logf("get_friend_uin2(tuin = %v)", tuin)
 	data, err := this.api("get_friend_info2", "tuin", tuin)
 	if err != nil {
 		err = json.Unmarshal(data, v)
@@ -474,7 +474,7 @@ type ResultQQLevel struct {
 
 // TODO: 获取不知什么玩意 先不写
 func (this *WebQQ) get_discus_list() (v *ResultDiscusList, err error) {
-	WARN.Log("calling an todo function get_discus_list()")
+	util.WARN.Err("calling an todo function get_discus_list()")
 	// this.api("get_discus_list")
 	return
 }

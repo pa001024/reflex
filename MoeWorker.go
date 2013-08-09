@@ -11,7 +11,6 @@ var (
 )
 
 func main() {
-	util.DEBUG = true
 	reload()
 	daemon.NewDaemon(conf).Serve()
 }
@@ -19,7 +18,7 @@ func main() {
 func reload() {
 	r, err := os.Open("config.json")
 	if err != nil {
-		util.Log("Cound not Load config.json")
+		util.ERROR.Err("Cound not Load config.json")
 		return
 	}
 	conf.Load(r)

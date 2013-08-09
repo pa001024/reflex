@@ -27,7 +27,7 @@ func New(name string, b []byte) (rst ITarget) {
 	obj := &Target{}
 	err := json.Unmarshal(b, obj)
 	if err != nil {
-		util.Log("JSON Parse Error", err)
+		util.ERROR.Log("JSON Parse Error", err)
 		return
 	}
 	switch obj.Type {
@@ -37,13 +37,13 @@ func New(name string, b []byte) (rst ITarget) {
 		json.Unmarshal(b, dst)
 		dst.Name = name
 		rst = dst
-		util.Log("target.sina \"" + name + "\" Loaded.")
+		util.INFO.Logf("target.sina \"%s\" Loaded.", name)
 	case "qqweibo", "qq":
 		dst := &QQWeibo{}
 		json.Unmarshal(b, dst)
 		dst.Name = name
 		rst = dst
-		util.Log("target.qqweibo \"" + name + "\" Loaded.")
+		util.INFO.Logf("target.qqweibo \"%s\" Loaded.", name)
 	}
 	return
 }

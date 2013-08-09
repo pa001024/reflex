@@ -20,16 +20,14 @@ const (
 )
 
 func (this *QQWeibo) Send(src *source.FeedInfo) (rid string, e error) {
-	if util.DEBUG {
-		util.Log(src.SourceId, ":", src.Id, src.RepostId, src.Title, src.Content, src.PicUrl)
-	}
+	util.DEBUG.Logf("QQWeibo.Send(%v:%v,repost_id:%v,title:%v,content:%v,picurl:%v)", src.SourceId, src.Id, src.RepostId, src.Title, src.Content, src.PicUrl)
 	if src.RepostId != "" {
 		r, err := this.Repost(src.Content, src.RepostId)
 		if err != nil {
 			e = err
 			return
 		}
-		util.Log("[qq."+this.Name+"] Repost sent:", r.Url())
+		util.INFO.Logf("[qq.%v] Repost sent: %v", this.Name, r.Url())
 		return util.ToString(r.Id), nil
 	} else if src.PicUrl != nil && len(src.PicUrl) > 0 {
 		r, err := this.UploadUrl(src.Content, src.PicUrl[0])
@@ -37,7 +35,7 @@ func (this *QQWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 			e = err
 			return
 		}
-		util.Log("[qq."+this.Name+"] UploadUrl sent:", r.Url())
+		util.INFO.Logf("[qq.%v] UploadUrl sent: %v", this.Name, r.Url())
 		return util.ToString(r.Id), nil
 	} else {
 		r, err := this.Update(src.Content)
@@ -45,7 +43,7 @@ func (this *QQWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 			e = err
 			return
 		}
-		util.Log("[qq."+this.Name+"] Update sent:", r.Url())
+		util.INFO.Logf("[qq.%v] Update sent: %v", this.Name, r.Url())
 		return util.ToString(r.Id), nil
 	}
 	return
@@ -98,19 +96,19 @@ func (this *QQWeibo) AccessToken(code string) (token string) {
 			"redirect_uri":  {this.CallbackUrl}, // http://some/weibocb.php
 		})
 	if err != nil {
-		util.Log("Fail to AccessToken:", err)
+		util.ERROR.Err("Fail to AccessToken:", err)
 		return
 	}
 
 	defer res.Body.Close()
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		util.Log("Fail to AccessToken:", err)
+		util.ERROR.Err("Fail to AccessToken:", err)
 		return
 	}
 	body, _ := url.ParseQuery(string(b))
 	if body.Get("error") != "" || body.Get("access_token") == "" {
-		util.Log("Fail to AccessToken(Remote):", body.Get("error"))
+		util.ERROR.Err("Fail to AccessToken(Remote):", body.Get("error"))
 		return
 	}
 	this.Token = body.Get("access_token")
@@ -129,14 +127,14 @@ func (this *QQWeibo) PostStatus(api string, args *url.Values) (rst *QQWeiboStatu
 	args.Set("clientip", util.GetIP())
 	res, err := http.PostForm("https://open.t.qq.com/api/t/"+api, *args)
 	if err != nil {
-		util.Log("Error on call", api+":", err)
+		util.ERROR.Errf("Error on call %s: %v", api, err)
 		return
 	}
 	defer res.Body.Close()
 	dst := &QQWeiboResult{}
 	json.NewDecoder(res.Body).Decode(dst)
 	if dst.Error != "" {
-		util.Log("Error on call", api+"(Remote):", dst.ErrorCode, ":", dst.Error)
+		util.ERROR.Errf("Error on call %s(Remote): %v : %v", api, dst.ErrorCode, dst.Error)
 		return nil, RemoteError(dst.Error)
 	}
 	rst = dst.Data
@@ -188,14 +186,14 @@ func (this *QQWeibo) Upload(status string, pic io.Reader) (rst *QQWeiboStatus, e
 
 	res, err := http.Post("https://open.t.qq.com/api/t/add_pic", formdata.FormDataContentType(), &bpic)
 	if err != nil {
-		util.Log("Error on call upload :", err)
+		util.ERROR.Err("Error on call upload :", err)
 		return
 	}
 	defer res.Body.Close()
 	dst := &QQWeiboResult{}
 	json.NewDecoder(res.Body).Decode(dst)
 	if dst.Error != "" {
-		util.Log("Error on call upload (Remote):", dst.ErrorCode, ":", dst.Error)
+		util.ERROR.Err("Error on call upload (Remote):", dst.ErrorCode, ":", dst.Error)
 		return nil, RemoteError(dst.Error)
 	}
 	rst = dst.Data

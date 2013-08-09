@@ -20,7 +20,7 @@ func New(name string, b []byte) (rst IFilter) {
 	obj := &Filter{}
 	err := json.Unmarshal(b, obj)
 	if err != nil {
-		util.Log("JSON Parse Error", err)
+		util.ERROR.Err("JSON Parse Error", err)
 		return
 	}
 	switch obj.Type {
@@ -30,19 +30,19 @@ func New(name string, b []byte) (rst IFilter) {
 		json.Unmarshal(b, dst)
 		dst.Name = name
 		rst = dst
-		util.Log("filter.moegirlwiki \"" + name + "\" Loaded.")
+		util.INFO.Logf("filter.moegirlwiki \"%s\" Loaded.", name)
 	case "word":
 		dst := &FilterWords{}
 		json.Unmarshal(b, dst)
 		dst.Name = name
 		rst = dst
-		util.Log("filter.word \"" + name + "\" Loaded.")
+		util.INFO.Logf("filter.word \"%s\" Loaded.", name)
 	case "zhconv":
 		dst := &FilterZhConv{}
 		json.Unmarshal(b, dst)
 		dst.Name = name
 		rst = dst
-		util.Log("filter.zhconv \"" + name + "\" Loaded.")
+		util.INFO.Logf("filter.zhconv \"%s\" Loaded.", name)
 	case "basic":
 		dst := &FilterBasic{}
 		json.Unmarshal(b, dst)
@@ -52,7 +52,7 @@ func New(name string, b []byte) (rst IFilter) {
 			dst.MaxLength = 120
 		}
 		rst = dst
-		util.Log("filter.basic \"" + name + "\" Loaded.")
+		util.INFO.Logf("filter.basic \"%s\" Loaded.", name)
 	}
 	return
 }

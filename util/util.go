@@ -189,10 +189,9 @@ func Base62(src int64) (rst string) {
 
 // 新浪微博base62解码
 func DeBase62(src string) (rst int64) {
-	for i, v := range src {
+	for _, v := range src {
 		a := int64(strings.IndexRune(BASE62_ST, v))
 		if a < 0 {
-			Log("Unknonw Rune:", v, "[", i, "]", "continued")
 			continue
 		}
 		rst = rst*62 + a

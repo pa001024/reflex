@@ -10,13 +10,6 @@ import (
 	"github.com/pa001024/MoeWorker/util"
 )
 
-// 三个日志级别
-var (
-	DEBUG = util.NewLogger(false, "[DEBUG] ")
-	WARN  = util.NewLogger(true, "[WARNING] ")
-	INFO  = util.NewLogger(true, "[INFO] ")
-)
-
 // WebQQ对象
 type WebQQ struct {
 	client *http.Client
@@ -48,10 +41,10 @@ func (this *WebQQ) Login() (err error) {
 	defer util.Catch()
 	_, code, pwd, err := this.ptlogin_check()
 	util.Try(err)
-	DEBUG.Log("[ptlogin_check] RET OK ", code, pwd)
+	util.DEBUG.Log("[ptlogin_check] RET OK ", code, pwd)
 	err = this.ptlogin_login(code, pwd)
 	util.Try(err)
-	DEBUG.Log("[ptlogin_login] RET OK ")
+	util.DEBUG.Log("[ptlogin_login] RET OK ")
 	this.PtWebQQ = this.GetCookie(util.MustParseUrl(PTLOGIN_URL), "ptwebqq")
 	if this.PtWebQQ == "" {
 		return fmt.Errorf("[ptwebqq] Failed to read cookie.")
@@ -67,7 +60,7 @@ func (this *WebQQ) Login() (err error) {
 	this.VerifyCode = ret.Result.VerifyCode
 	this.SessionId = ret.Result.SessionId
 	this.Uin = ret.Result.Uin
-	INFO.Log("Login success")
+	util.INFO.Log("Login success")
 	return
 }
 
@@ -98,7 +91,7 @@ func (this *WebQQ) Start() <-chan Event {
 		for {
 			r, err := this.poll2() // TODO: 超时处理
 			if err != nil {
-				WARN.Logf("poll2() throw error: %v", err)
+				util.WARN.Logf("poll2() throw error: %v", err)
 			} else if r != nil {
 				in <- r
 			}

@@ -4,13 +4,15 @@ import (
 	"bytes"
 	"net/http"
 	"net/url"
+
+	"github.com/pa001024/MoeWorker/util"
 )
 
 // 获取特定cookie值
 func (this *WebQQ) GetCookie(url *url.URL, name string) (ret string) {
 	if this.client.Jar != nil {
 		for _, v := range this.client.Jar.Cookies(url) {
-			DEBUG.Log(v)
+			util.DEBUG.Log(v)
 			if v.Name == name {
 				ret = v.Value
 				// return

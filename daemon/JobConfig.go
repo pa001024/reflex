@@ -23,14 +23,14 @@ type JobConfig struct {
 func (this *JobConfig) Load(r io.Reader) (err error) {
 	err = json.NewDecoder(r).Decode(this)
 	if err != nil {
-		util.Log("Parse Config Fail", err)
+		util.ERROR.Err("Parse Config Fail", err)
 		return
 	}
 	for i, v := range this.Source {
 		b, _ := json.Marshal(v)
 		this.Source[i] = source.New(i, b)
 		if this.Source[i] == nil {
-			util.Log("source." + i + ".type \"" + v.(map[string]interface{})["type"].(string) + "\" not exists, skip")
+			util.WARN.Logf(`source.%v.type "%v" not exists, skip`, i, v.(map[string]interface{})["type"])
 			delete(this.Source, i)
 			continue
 		}
@@ -39,7 +39,7 @@ func (this *JobConfig) Load(r io.Reader) (err error) {
 		b, _ := json.Marshal(v)
 		this.Filter[i] = filter.New(i, b)
 		if this.Filter[i] == nil {
-			util.Log("filter." + i + ".type \"" + v.(map[string]interface{})["type"].(string) + "\" not exists, skip")
+			util.WARN.Logf(`filter.%v.type "%v" not exists, skip`, i, v.(map[string]interface{})["type"])
 			delete(this.Filter, i)
 			continue
 		}
@@ -48,7 +48,7 @@ func (this *JobConfig) Load(r io.Reader) (err error) {
 		b, _ := json.Marshal(v)
 		this.Target[i] = target.New(i, b)
 		if this.Target[i] == nil {
-			util.Log("target." + i + ".type \"" + v.(map[string]interface{})["type"].(string) + "\" not exists, skip")
+			util.WARN.Logf(`target.%v.type "%v" not exists, skip`, i, v.(map[string]interface{})["type"])
 			delete(this.Target, i)
 			continue
 		}

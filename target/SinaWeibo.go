@@ -18,16 +18,14 @@ const (
 )
 
 func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string, e error) {
-	if util.DEBUG {
-		util.Log(src.SourceId, ":", src.Id, src.RepostId, src.Title, src.Content, src.PicUrl)
-	}
+	util.DEBUG.Logf("SinaWeibo.Send(%v:%v,repost_id:%v,title:%v,content:%v,picurl:%v)", src.SourceId, src.Id, src.RepostId, src.Title, src.Content, src.PicUrl)
 	if src.RepostId != "" {
 		r, err := this.Repost(src.Content, src.RepostId)
 		if err != nil {
 			e = err
 			return
 		}
-		util.Log("[sina."+this.Name+"] Repost sent:", r.Url())
+		util.INFO.Log("[sina."+this.Name+"] Repost sent:", r.Url())
 		return util.ToString(r.Id), nil
 	} else if src.PicUrl != nil && len(src.PicUrl) > 0 {
 		if this.EnableUploadUrl {
@@ -36,7 +34,7 @@ func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 				e = err
 				return
 			}
-			util.Log("[sina."+this.Name+"] UploadUrl sent:", r.Url())
+			util.INFO.Log("[sina.%s] UploadUrl sent: %v", this.Name, r.Url())
 			return util.ToString(r.Id), nil
 		} else {
 			pic := util.FetchImageAsStream(src.PicUrl[0])
@@ -45,7 +43,7 @@ func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 				e = err
 				return
 			}
-			util.Log("[sina."+this.Name+"] Upload sent:", r.Url())
+			util.INFO.Log("[sina.%s] Upload sent: %v", this.Name, r.Url())
 			return util.ToString(r.Id), nil
 		}
 	} else {
@@ -54,7 +52,7 @@ func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 			e = err
 			return
 		}
-		util.Log("Update sent:", r.Url())
+		util.INFO.Log("Update sent:", r.Url())
 		return util.ToString(r.Id), nil
 	}
 	return
@@ -235,7 +233,7 @@ func (this *SinaWeibo) AccessToken(code string) (token string) {
 			"redirect_uri":  {this.CallbackUrl}, // http://some/weibocb.php
 		})
 	if err != nil {
-		util.Log("Fail to AccessToken:", err)
+		util.ERROR.Log("Fail to AccessToken:", err)
 		return
 	}
 
@@ -243,7 +241,7 @@ func (this *SinaWeibo) AccessToken(code string) (token string) {
 	var body map[string]interface{}
 	json.NewDecoder(res.Body).Decode(&body)
 	if body["error"] != nil || body["access_token"] == nil {
-		util.Log("Fail to AccessToken(Remote):", body["error"])
+		util.ERROR.Log("Fail to AccessToken(Remote):", body["error"])
 		return
 	}
 	this.Token = body["access_token"].(string)
@@ -256,7 +254,7 @@ func (this *SinaWeibo) PostStatus(api string, args *url.Values) (rst *SinaWeiboS
 	args.Set("access_token", this.Token)
 	res, err := http.PostForm("https://api.weibo.com/2/statuses/"+api+".json", *args)
 	if err != nil {
-		util.Log("Error on call", api+":", err)
+		util.ERROR.Log("Error on call", api+":", err)
 		return
 	}
 	defer res.Body.Close()
@@ -298,7 +296,7 @@ func (this *SinaWeibo) Upload(status string, pic io.Reader) (rst *SinaWeiboStatu
 
 	res, err := http.Post("https://api.weibo.com/2/statuses/upload.json", formdata.FormDataContentType(), &bpic)
 	if err != nil {
-		util.Log("Error on call upload :", err)
+		util.ERROR.Log("Error on call upload :", err)
 		return
 	}
 	defer res.Body.Close()
@@ -322,14 +320,14 @@ func (this *SinaWeibo) ShortUrl(urlLong string) (rst string) {
 		"url_long":     {urlLong},
 	}).Encode())
 	if err != nil {
-		util.Log("Error on call ShortUrl:", err)
+		util.ERROR.Log("Error on call ShortUrl:", err)
 		return
 	}
 	defer res.Body.Close()
 	v := &SinaWeiboShortUrlResult{}
 	json.NewDecoder(res.Body).Decode(v)
 	if v.Error != "" {
-		util.Log("Error on call ShortUrl[Remote]:", v.Error)
+		util.ERROR.Log("Error on call ShortUrl[Remote]:", v.Error)
 		return urlLong
 	}
 	return
@@ -337,7 +335,7 @@ func (this *SinaWeibo) ShortUrl(urlLong string) (rst string) {
 func (this *SinaWeiboStatus) Url() (urlText string) {
 	if this == nil || this.User == nil {
 		b, _ := json.Marshal(this)
-		util.Log("Bad response!", string(b))
+		util.ERROR.Log("Bad response!", string(b))
 	}
 	urlText = "http://weibo.com/" + this.User.Idstr + "/" + util.Base62Url(this.Mid)
 	return

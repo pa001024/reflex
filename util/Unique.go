@@ -1,5 +1,6 @@
 package util
 
+/*
 import (
 	"encoding/json"
 )
@@ -46,3 +47,4 @@ func (this *UniqueFileMem) CanPut(id string) bool {
 	}
 	return true
 }
+*/

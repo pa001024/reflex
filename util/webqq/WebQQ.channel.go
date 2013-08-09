@@ -129,7 +129,7 @@ type ResultRecentList struct {
  {"retcode":0,"result":"ok"}
 */
 func (this *WebQQ) send_buddy_msg2(to Uin, content ContentM, msg_id uint32) (v *Result, err error) {
-	DEBUG.Logf("send_buddy_msg2(to = %s , content = %v , msg_id = %v)", to, content, msg_id)
+	util.DEBUG.Logf("send_buddy_msg2(to = %s , content = %v , msg_id = %v)", to, content, msg_id)
 	data, err := this.postChannel("send_buddy_msg2",
 		"to", to,
 		"face", "552", // 这是啥?
@@ -156,7 +156,7 @@ func (this *WebQQ) send_buddy_msg2(to Uin, content ContentM, msg_id uint32) (v *
  {"retcode":0,"result":"ok"}
 */
 func (this *WebQQ) send_qun_msg2(group_uin Uin, content ContentM, msg_id uint32) (v *Result, err error) {
-	DEBUG.Logf("send_qun_msg2(group_uin = %s , content = %v , msg_id = %v)", group_uin, content, msg_id)
+	util.DEBUG.Logf("send_qun_msg2(group_uin = %s , content = %v , msg_id = %v)", group_uin, content, msg_id)
 	data, err := this.postChannel("send_qun_msg2",
 		"group_uin", group_uin,
 		"content", content.Encode().EncodeString(),
@@ -170,7 +170,7 @@ func (this *WebQQ) send_qun_msg2(group_uin Uin, content ContentM, msg_id uint32)
 
 // 获取消息
 func (this *WebQQ) poll2() (v *ResultPoll, err error) {
-	DEBUG.Log("poll2()")
+	util.DEBUG.Log("poll2()")
 	data, err := this.postChannel("poll2")
 	if err != nil {
 		err = json.Unmarshal(data, v)

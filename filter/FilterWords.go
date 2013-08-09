@@ -37,7 +37,7 @@ func (this *FilterWords) Process(src []*source.FeedInfo) (dst []*source.FeedInfo
 	if this.compFilter == nil {
 		r, err := os.Open(this.DictFile)
 		if err != nil && this.LoadDict(r) != nil {
-			util.Log("Warning: FilterWords.LoadDict Fail", err)
+			util.ERROR.Err("FilterWords.LoadDict Fail", err)
 			return src
 		}
 	}

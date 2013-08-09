@@ -79,7 +79,7 @@ func (this *SourceMediawiki) Get() (rst []*FeedInfo) {
 		}
 		d, err := time.Parse(time.RFC1123, v.Updated)
 		if err != nil {
-			util.Log("Time Parse Fail", err)
+			util.WARN.Err("Time Parse Fail", err)
 			continue
 		}
 		if d.Sub(last) <= 0 { // It means if feed.Updated >= this.LastUpdate
@@ -152,7 +152,7 @@ func (this *SourceMediawiki) GetByName(name string) (rst string) {
 		"titles": {strings.Replace(name, " ", "_", -1)},
 	}).Encode())
 	if err != nil {
-		util.Log("Network Fetch Fail", err)
+		util.ERROR.Err("Network Fetch Fail", err)
 		return
 	}
 	defer res.Body.Close()

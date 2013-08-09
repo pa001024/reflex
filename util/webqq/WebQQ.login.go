@@ -31,7 +31,7 @@ func (this *WebQQ) ptlogin_login_sig() (login_sig string, err error) {
 
 // [2]检查, 可重复
 func (this *WebQQ) ptlogin_check() (codetoken, code, pwd string, err error) {
-	DEBUG.Log("[ptlogin_check] Start")
+	util.DEBUG.Log("[ptlogin_check] Start")
 	res, err := this.client.Get(PTLOGIN_URL + "check?" + (url.Values{"uin": {this.Id},
 		"appid":   {WEBQQ_APPID},
 		"js_ver":  {"10037"},
@@ -62,7 +62,7 @@ func (this *WebQQ) ptlogin_check() (codetoken, code, pwd string, err error) {
 		return
 	}
 	pwd = this.GenPwd(salt, code)
-	DEBUG.Log("[ptlogin_check] Success GenPwd", pwd)
+	util.DEBUG.Log("[ptlogin_check] Success GenPwd", pwd)
 	return
 }
 
@@ -107,10 +107,10 @@ func (this *WebQQ) ptlogin_login(code, pwd string) (err error) {
 	url := ss[5]
 	msg := ss[9]
 	if url == "http://web2.qq.com/loginproxy.html?login2qq=1&webqq_type=10" {
-		WARN.Log("[ptlogin_login] fail_pt4_302")
+		util.WARN.Log("[ptlogin_login] fail_pt4_302")
 		return
 	} else {
-		DEBUG.Log("[ptlogin_login]", msg)
+		util.DEBUG.Log("[ptlogin_login]", msg)
 		url, err = this.ptlogin_pt4_302(url)
 		util.Try(err)
 	}
@@ -122,7 +122,7 @@ func (this *WebQQ) ptlogin_pt4_302(oldurl string) (url string, err error) {
 	pt4_302 := util.MustParseUrl(oldurl)
 	check_sig := pt4_302.Query().Get("u1")
 	if check_sig != "" {
-		DEBUG.Log("[check_sig]", check_sig)
+		util.DEBUG.Log("[check_sig]", check_sig)
 		return this.ptlogin_check_sig(check_sig)
 	}
 	return

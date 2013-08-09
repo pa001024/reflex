@@ -7,9 +7,8 @@ import (
 	"net/http"
 )
 
-var (
-	IP string
-)
+// 当前IP的缓存, 将值设置为"" 再使用GetIP()可返回最新结果
+var IP string
 
 // 获取当前IP, 有缓存
 func GetIP() string {
@@ -35,8 +34,8 @@ func CheckIP() (ip string, err error) {
 	return
 }
 
-// 下载图片
-func FetchImageAsStream(url string) (r io.Reader) {
+// 下载图片(带缓存)
+func FetchImageAsStream(url string) (r *bytes.Buffer) {
 	res, err := http.Get(url)
 	if err != nil {
 		return nil

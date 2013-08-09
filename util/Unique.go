@@ -1,17 +1,16 @@
 package util
 
-/*
 import (
 	"encoding/json"
 )
 
-type Unique interface { // 禁止重复更新
+type Unique interface { // 禁止重复接口类
 	Put(id string) (err error) // 检测唯一并设置
 	CanPut(id string) bool     // 检测唯一
 }
 
-func NewUnique(typ string, args map[string]string) (this Unique) { // 工厂函数
-	switch typ {
+func NewUnique(type_ string, args map[string]string) (this Unique) { // 工厂函数
+	switch type_ {
 	default:
 	// TODO: case "sql_mem":
 	case "file_mem":
@@ -23,7 +22,7 @@ func NewUnique(typ string, args map[string]string) (this Unique) { // 工厂函�
 	return
 }
 
-type UniqueFileMem struct { // 使用内存HashSet来保证唯一性(非进程安全)
+type UniqueFileMem struct { // 使用内存Set来保证唯一性(非进程/线程安全)
 	Unique
 
 	containerCache       map[string]bool // 缓存容器
@@ -47,4 +46,3 @@ func (this *UniqueFileMem) CanPut(id string) bool {
 	}
 	return true
 }
-*/

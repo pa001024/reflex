@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/url"
 	"path"
 	"runtime"
@@ -36,6 +37,19 @@ func ToJson(args ...interface{}) string {
 		return ""
 	}
 	return string(bin)
+}
+
+// 解析Host 到IP+端口
+func ParseHost(host string) (ip net.IP, port int) {
+	n := strings.IndexRune(host, ':')
+	if n == -1 {
+		ip = net.ParseIP(host)
+		port = 80
+	} else {
+		ip = net.ParseIP(host[:n])
+		port = ToInt(host[n+1:])
+	}
+	return
 }
 
 // unsafe
@@ -158,6 +172,14 @@ func Md5StringX(src string) (rst string) {
 	h := md5.New()
 	io.WriteString(h, src)
 	rst = fmt.Sprintf("%X", h.Sum(nil))
+	return
+}
+
+// 转换字符串到int
+func ToInt(src string) (rst int) {
+	for _, v := range src {
+		rst = rst*10 + int(v-'0')
+	}
 	return
 }
 

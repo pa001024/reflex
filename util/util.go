@@ -17,6 +17,13 @@ const (
 	BASE62_ST = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 )
 
+func EncodeHexString(src []byte) string {
+	return fmt.Sprintf("%x", src)
+}
+func EncodeHexStringX(src []byte) string {
+	return fmt.Sprintf("%X", src)
+}
+
 // unsafe
 func ToJson(args ...interface{}) string {
 	l := len(args) - 1

@@ -139,12 +139,12 @@ func (this *WebQQ) ptlogin_check_sig(oldurl string) (url string, err error) {
 }
 
 // [6]用令牌登录WebQQ
-func (this *WebQQ) channel_login2(ptwebqq string) (hr *Login2Result, err error) {
+func (this *WebQQ) channel_login2() (hr *Login2Result, err error) {
 	res, err := this.PostFormWithReferer(CHANNEL_URL+"login2",
 		url.Values{
 			"r": {util.ToJson(
 				"status", "online",
-				"ptwebqq", ptwebqq,
+				"ptwebqq", this.PtWebQQ,
 				"passwd_sig", "",
 				"clientid", this.ClientId,
 				"psessionid", nil,
@@ -186,7 +186,7 @@ type Login2Result struct {
 	Code   int    `json:"retcode"`
 	Msg    string `json:"errmsg"`
 	Result struct {
-		Uin        uint64 `json:"uin"`
+		Uin        Uin    `json:"uin"`
 		VerifyCode string `json:"vfwebqq"`
 		SessionId  string `json:"psessionid"`
 		Status     string `json:"status"`

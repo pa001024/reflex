@@ -24,9 +24,11 @@ type WebQQ struct {
 	Id        string
 	PasswdMd5 string
 	// 瞬态
+	Uin        Uin
 	ClientId   string
 	VerifyCode string
 	SessionId  string
+	PtWebQQ    string
 }
 
 // 创建WebQQ
@@ -50,20 +52,21 @@ func (this *WebQQ) Login() (err error) {
 	err = this.ptlogin_login(code, pwd)
 	util.Try(err)
 	DEBUG.Log("[ptlogin_login] RET OK ")
-	ptwebqq := this.GetCookie(util.MustParseUrl(PTLOGIN_URL), "ptwebqq")
-	if ptwebqq == "" {
+	this.PtWebQQ = this.GetCookie(util.MustParseUrl(PTLOGIN_URL), "ptwebqq")
+	if this.PtWebQQ == "" {
 		return fmt.Errorf("[ptwebqq] Failed to read cookie.")
 	}
-	ret, err := this.channel_login2(ptwebqq)
+	ret, err := this.channel_login2()
 	util.Try(err)
 	if ret.Code != 0 {
 		if ret.Code == 103 {
 			ret.Msg = "Error 103"
 		}
-		return fmt.Errorf("%v : %s\n%v", ret.Code, ret.Msg, ptwebqq)
+		return fmt.Errorf("%v : %s\n%v", ret.Code, ret.Msg, this.PtWebQQ)
 	}
 	this.VerifyCode = ret.Result.VerifyCode
 	this.SessionId = ret.Result.SessionId
+	this.Uin = ret.Result.Uin
 	INFO.Log("Login success")
 	return
 }
@@ -74,12 +77,40 @@ func (this *WebQQ) GenPwd(salt, code string) string {
 	return util.Md5StringX(vSaltedPwd + strings.ToUpper(code))
 }
 
-//
-func (this *WebQQ) SendTo(qid string) {
+var (
+	msg_id uint32 = (2000 + uint32(rand.Int31n(2999))) * 1000
+)
 
+func (this *WebQQ) SendTo(to Uin, m ContentM) (err error) {
+	r, err := this.send_buddy_msg2(to, m, msg_id)
+	msg_id++
+	if r != nil && err == nil {
+		err = fmt.Errorf("SendTo() return code %v", r.Code)
+	}
+	return
 }
 
 // 开始接受消息并发送到channel
-func (this *WebQQ) Start() {
-	// make(chan )
+func (this *WebQQ) Start() <-chan Event {
+	in := make(chan *ResultPoll, 3) // 防止被消息处理阻塞 可调大
+	out := make(chan Event)
+	go func() {
+		for {
+			r, err := this.poll2() // TODO: 超时处理
+			if err != nil {
+				WARN.Logf("poll2() throw error: %v", err)
+			} else if r != nil {
+				in <- r
+			}
+		}
+	}()
+	for {
+		for _, v := range (<-in).Result {
+			e, err := RawEvent(v.Value).ParseEvent(v.Type)
+			if err == nil {
+				out <- e
+			}
+		}
+	}
+	return out
 }

@@ -163,3 +163,37 @@ func (this *WebQQ) channel_login2(ptwebqq string) (hr *Login2Result, err error) 
 	}
 	return
 }
+
+// ptlogin_login的返回值 JSON
+// 样本:
+/*
+{
+	"retcode": 0,
+	"result": {
+		"uin": 2735284921,
+		"cip": 3080236829,
+		"index": 1075,
+		"port": 47943,
+		"status": "online",
+		"vfwebqq": "209da35a9665546efac6e1032577fd75e8fcae3e2d7a264fc64fe598064245285ae63a270bc204f4",
+		"psessionid": "8368046764001d636f6e6e7365727665725f77656271714031302e3133392e372e3136300000443100000163026e0400b92209a36d0000000a404b454773376a7457646d00000028209da35a9665546efac6e1032577fd75e8fcae3e2d7a264fc64fe598064245285ae63a270bc204f4",
+		"user_state": 0,
+		"f": 0
+	}
+}
+*/
+type Login2Result struct {
+	Code   int    `json:"retcode"`
+	Msg    string `json:"errmsg"`
+	Result struct {
+		Uin        uint64 `json:"uin"`
+		VerifyCode string `json:"vfwebqq"`
+		SessionId  string `json:"psessionid"`
+		Status     string `json:"status"`
+		// CIP        uint32 `json:"cip"` // 没用
+		// Index     uint32 `json:"index"` // 没用
+		// Port      uint32 `json:"port"`       // 没用
+		// UserState uint32 `json:"user_state"` // 没用
+		// F          uint32 `json:"f"` // 没用
+	} `json:"result"`
+}

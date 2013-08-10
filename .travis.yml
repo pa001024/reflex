@@ -1,0 +1,20 @@
+language: go
+go: 1.1
+services:
+  #- memcache # 
+install:
+  - export PATH=$PATH:$HOME/gopath/bin
+  - go get -v github.com/pa001024/MoeWorker
+  - go get -v github.com/pa001024/MoeWorker/source
+  - go get -v github.com/pa001024/MoeWorker/filter
+  - go get -v github.com/pa001024/MoeWorker/target
+  - go get -v github.com/pa001024/MoeWorker/util
+  - go get -v github.com/pa001024/MoeWorker/util/ascgen
+  - go get -v github.com/pa001024/MoeWorker/util/webqq
+script:
+  - go test github.com/pa001024/MoeWorker/source
+  - go test github.com/pa001024/MoeWorker/filter
+  - go test github.com/pa001024/MoeWorker/target
+  - go test github.com/pa001024/MoeWorker/util
+  - go test github.com/pa001024/MoeWorker/util/ascgen
+  - go test github.com/pa001024/MoeWorker/util/webqq

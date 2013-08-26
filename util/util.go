@@ -252,7 +252,7 @@ func Try(e error) {
 	if e != nil {
 		fup, file, line, _ := runtime.Caller(1)
 		fu := runtime.FuncForPC(fup)
-		panic(fmt.Sprintf("%s%s\n   at %s(%s:%v)", string([]byte{0xb, 0xad, 0xca, 0xfe}), e.Error(), fu.Name(), path.Base(file), line))
+		panic(fmt.Sprintf("\x0b\xad\xca\xfe%s\n    at %s(%s:%v)", e.Error(), fu.Name(), path.Base(file), line))
 	}
 }
 
@@ -260,16 +260,10 @@ func Try(e error) {
 func Catch() {
 	if e := recover(); e != nil {
 		es := fmt.Sprint(e)
-		if es[:4] == string([]byte{0xb, 0xad, 0xca, 0xfe}) {
-			fmt.Println(es[4:])
+		if es[:4] == "\x0b\xad\xca\xfe" {
+			ERROR.Log(es[4:])
 		} else {
 			panic(e)
 		}
 	}
-}
-
-// 合并Try Catch
-func TryCatch(i func() error, o func()) {
-	defer o()
-	Try(i())
 }

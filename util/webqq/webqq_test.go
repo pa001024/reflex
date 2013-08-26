@@ -7,14 +7,14 @@ import (
 )
 
 var (
-	webqq_test = NewWebQQ("youdontneedtoknow", util.Md5("3gEkpEOkUf"))
+	webqq_test = NewWebQQ("2735284921", util.Md5("3gEkpEOkUf"))
 )
 
 // 测试密码算法
 func TestGenPwd(t *testing.T) {
-	p := webqq_test.GenPwd(string([]byte{0x00, 0x00, 0x00, 0x00, 0xa3, 0x09, 0x22, 0xb9}), "ztwb")
+	p := webqq_test.GenPwd(string([]byte{0x00, 0x00, 0x00, 0x00, 0xa3, 0x09, 0x22, 0xb9}), "awsz")
 	fmt.Println(p)
-	if p != "5504143771AA56D507518086D3A13958" {
+	if p != "016A97B8E28587F7AFA2C66496948A65" {
 		t.Fail()
 	}
 }
@@ -28,9 +28,6 @@ func TestGenHash(t *testing.T) {
 	if h != "FCF5FBFA" {
 		t.Fail()
 	}
-}
-func init() {
-	DEBUG.Enable()
 }
 
 // 测试Hash算法

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
+	"time"
 )
 
 var (
@@ -56,4 +57,21 @@ func BenchmarkIsArrayDuplicateOpt(b *testing.B) {
 		}
 	}
 	b.Log("Matched:", t, "/", b.N)
+}
+
+func TestTryCatch(t *testing.T) {
+	defer Catch()
+	Try(fmt.Errorf("test err %s", "[test]"))
+}
+
+func TestTryTimeoutCatch(t *testing.T) {
+	defer Catch()
+	dosomething := func() <-chan time.Time {
+		return time.After(3 * time.Second)
+	}
+	select {
+	case <-time.After(1 * time.Second):
+		Try(fmt.Errorf("Exec Timeout %s", "Error"))
+	case <-dosomething():
+	}
 }

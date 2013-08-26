@@ -1,10 +1,8 @@
 package webqq
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"net/url"
 	"regexp"
 	"strings"
@@ -13,14 +11,16 @@ import (
 )
 
 const (
-	WEBQQ_APPID = "1003903"
-	WEBQQ_TYPE  = "10"
-	PTLOGIN_URL = "https://ssl.ptlogin2.qq.com/"
+	WEBQQ_APPID  = "1003903"
+	WEBQQ_TYPE   = "10"
+	PTLOGIN_URL  = "https://ssl.ptlogin2.qq.com/"
+	JS_VER       = "10037"     // [2013-8-27] 10041
+	LOGIN_ACTION = "2-10-5837" // [2013-8-27] 4-9-7230
 )
 
-// [1]检查前获取sig, 永久
+// [1]检查前获取sig, 永久 [2013-8-25]
 func (this *WebQQ) ptlogin_login_sig() (login_sig string, err error) {
-	res, err := this.client.Get("https://ui.ptlogin2.qq.com/cgi-bin/login?daid=164&target=self&style=5&mibao_css=m_webqq&appid=1003903&enable_qlogin=0&no_verifyimg=1&s_url=http%3A%2F%2Fweb2.qq.com%2Floginproxy.html&f_url=loginerroralert&strong_login=1&login_state=10&t=2013072300")
+	res, err := this.client.Get(this.SigUrl)
 	util.Try(err)
 	bs, err := ioutil.ReadAll(res.Body)
 	util.Try(err)
@@ -32,21 +32,17 @@ func (this *WebQQ) ptlogin_login_sig() (login_sig string, err error) {
 // [2]检查, 可重复
 func (this *WebQQ) ptlogin_check() (codetoken, code, pwd string, err error) {
 	util.DEBUG.Log("[ptlogin_check] Start")
-	res, err := this.client.Get(PTLOGIN_URL + "check?" + (url.Values{"uin": {this.Id},
+	res, err := this.getWithReferer(PTLOGIN_URL+"check?"+(url.Values{
+		"uin":     {this.Id},
 		"appid":   {WEBQQ_APPID},
-		"js_ver":  {"10037"},
+		"js_ver":  {JS_VER},
 		"js_type": {"0"},
 		"u1":      {"http://web2.qq.com/loginproxy.html"},
-		"r":       {fmt.Sprint(rand.ExpFloat64())}}).Encode())
-	if err != nil {
-		return
-	}
+		"r":       {rand_r()}}).Encode(), this.SigUrl)
+	util.Try(err)
 	bs, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	util.Try(err)
-	if err != nil {
-		return
-	}
 	s := string(bs)
 	salt := ""
 	if s[14] == '0' { //ptui_checkVC('0','!YIZ','\x00\x00\x00\x00\x04\x82\x43\x7e');
@@ -58,18 +54,16 @@ func (this *WebQQ) ptlogin_check() (codetoken, code, pwd string, err error) {
 	} else {
 		err = fmt.Errorf("[ptlogin_check]失败返回值: %s", s)
 	}
-	if err != nil {
-		return
-	}
+	util.Try(err)
 	pwd = this.GenPwd(salt, code)
-	util.DEBUG.Log("[ptlogin_check] Success GenPwd", pwd)
+	util.DEBUG.Log("[ptlogin_check] Success GenPwd ", pwd)
 	return
 }
 
 // [3]单点登录, 可重复
-func (this *WebQQ) ptlogin_login(code, pwd string) (err error) {
-	res, err := this.GetWithReferer(
-		PTLOGIN_URL + "login?" + (url.Values{"u": {this.Id},
+func (this *WebQQ) ptlogin_login(code, pwd string) (urlStr, msg string, err error) {
+	res, err := this.getWithReferer(
+		PTLOGIN_URL+"login?"+(url.Values{"u": {this.Id},
 			"p":            {pwd},
 			"verifycode":   {code},
 			"webqq_type":   {WEBQQ_TYPE},
@@ -85,115 +79,40 @@ func (this *WebQQ) ptlogin_login(code, pwd string) (err error) {
 			"pttype":       {"1"},
 			"dumy":         {""},
 			"fp":           {"loginerroralert"},
-			"action":       {"4-15-8246"},
+			"action":       {LOGIN_ACTION},
 			"mibao_css":    {"m_webqq"},
 			"t":            {"1"},
 			"g":            {"1"},
 			"js_type":      {"0"},
-			"js_ver":       {"10037"}}).Encode())
+			"js_ver":       {JS_VER},
+			"login_sig":    {this.LoginSig}}).Encode(), this.SigUrl)
 	util.Try(err)
 	bs, err := ioutil.ReadAll(res.Body)
 	util.Try(err)
 	res.Body.Close()
 	ss := strings.Split(string(bs), "'")
 	if ss[1] == "4" {
-		return fmt.Errorf("%s", ss[9])
+		err = fmt.Errorf("%s", ss[9])
+		util.Try(err)
 	} else if ss[1] != "0" {
 		err = fmt.Errorf("[ptlogin_login]失败返回值: %s", string(bs))
 		util.Try(err)
 	}
 	//ptuiCB('0','0','http://web.qq.com/loginproxy.html?login2qq=1&webqq_type=10','0','登录成功！', '菊菊菊菊菊菊');
-	//ptuiCB('0','0','https://ssl.ptlogin2.qq.com/pt4_302?u1=http%3A//ptlogin4.web2.qq.com/check_sig%3Fpttype%3D1%26uin%3D2735284921%26service%3Dlogin%26nodirect%3D0%26ptsig%3DjHDCjZ5Our13vq2Kmx8VjeKxbVqg*UjyI01f2oGT8MY_%26s_url%3Dhttp%253a%252f%252fweb2.qq.com%252floginproxy.html%253flogin2qq%253d1%2526webqq%255ftype%253d10%26f_url%3D%26ptlang%3D2052%26ptredirect%3D100%26aid%3D1003903%26daid%3D164%26j_later%3D0%26low_login_hour%3D0%26regmaster%3D0','0','登录成功！', '菊菊菊菊菊菊');
-	url := ss[5]
-	msg := ss[9]
-	if url == "http://web2.qq.com/loginproxy.html?login2qq=1&webqq_type=10" {
-		util.WARN.Log("[ptlogin_login] fail_pt4_302")
-		return
-	} else {
-		util.DEBUG.Log("[ptlogin_login]", msg)
-		url, err = this.ptlogin_pt4_302(url)
-		util.Try(err)
+	//ptuiCB('0','0','http://ptlogin4.web2.qq.com/check_sig?pttype=1&uin=2735284921&service=login&nodirect=0&ptsig=MPlx81vcwwhHDYZeAsCdaFoQg3nTXyy67sQAYCewxu0_&s_url=http%3a%2f%2fweb2.qq.com%2floginproxy.html%3flogin2qq%3d1%26webqq%5ftype%3d10&f_url=&ptlang=2052&ptredirect=100&aid=1003903&daid=164&j_later=0&low_login_hour=0&regmaster=0','0','登录成功！', '菊菊菊菊菊菊');
+
+	urlStr = ss[5]
+	msg = ss[9]
+	if strings.HasPrefix(urlStr, "http://web2.qq.com/loginproxy") {
+		util.WARN.Log("[ptlogin_login] fail_check_sig")
 	}
 	return
 }
 
-// [4]获取网址
-func (this *WebQQ) ptlogin_pt4_302(oldurl string) (url string, err error) {
-	pt4_302 := util.MustParseUrl(oldurl)
-	check_sig := pt4_302.Query().Get("u1")
-	if check_sig != "" {
-		util.DEBUG.Log("[check_sig]", check_sig)
-		return this.ptlogin_check_sig(check_sig)
-	}
-	return
-}
-
-// [5]获取cookie
-func (this *WebQQ) ptlogin_check_sig(oldurl string) (url string, err error) {
+// [4]用获取cookie
+func (this *WebQQ) ptlogin_check_sig(oldurl string) (err error) {
 	res, err := this.client.Get(oldurl)
-	if err != nil {
-		return
-	}
+	util.Try(err)
 	res.Body.Close()
 	return
-}
-
-// [6]用令牌登录WebQQ
-func (this *WebQQ) channel_login2() (hr *Login2Result, err error) {
-	res, err := this.PostFormWithReferer(CHANNEL_URL+"login2",
-		url.Values{
-			"r": {util.ToJson(
-				"status", "online",
-				"ptwebqq", this.PtWebQQ,
-				"passwd_sig", "",
-				"clientid", this.ClientId,
-				"psessionid", nil,
-			)},
-			"clientid":   {this.ClientId},
-			"psessionid": {"null"},
-		})
-	if err != nil {
-		return
-	}
-	hr = &Login2Result{}
-	err = json.NewDecoder(res.Body).Decode(hr)
-	res.Body.Close()
-	if err != nil {
-		return
-	}
-	return
-}
-
-// ptlogin_login的返回值 JSON
-// 样本:
-/*
-{
-	"retcode": 0,
-	"result": {
-		"uin": 2735284921,
-		"cip": 3080236829,
-		"index": 1075,
-		"port": 47943,
-		"status": "online",
-		"vfwebqq": "209da35a9665546efac6e1032577fd75e8fcae3e2d7a264fc64fe598064245285ae63a270bc204f4",
-		"psessionid": "8368046764001d636f6e6e7365727665725f77656271714031302e3133392e372e3136300000443100000163026e0400b92209a36d0000000a404b454773376a7457646d00000028209da35a9665546efac6e1032577fd75e8fcae3e2d7a264fc64fe598064245285ae63a270bc204f4",
-		"user_state": 0,
-		"f": 0
-	}
-}
-*/
-type Login2Result struct {
-	Code   int    `json:"retcode"`
-	Msg    string `json:"errmsg"`
-	Result struct {
-		Uin        Uin    `json:"uin"`
-		VerifyCode string `json:"vfwebqq"`
-		SessionId  string `json:"psessionid"`
-		Status     string `json:"status"`
-		// CIP        uint32 `json:"cip"` // 没用
-		// Index     uint32 `json:"index"` // 没用
-		// Port      uint32 `json:"port"`       // 没用
-		// UserState uint32 `json:"user_state"` // 没用
-		// F          uint32 `json:"f"` // 没用
-	} `json:"result"`
 }

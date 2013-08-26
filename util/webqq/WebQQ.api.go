@@ -26,7 +26,8 @@ type Account uint64
 func (u Account) String() string { return fmt.Sprint(uint64(u)) }
 
 const (
-	API_URL = "http://s.web2.qq.com/api/"
+	API_URL     = "http://s.web2.qq.com/api/"
+	API_REFERER = "http://s.web2.qq.com/proxy.html?v=20110412001&callback=1&id=3"
 )
 
 // 通用API接口(GET)
@@ -39,7 +40,7 @@ func (this *WebQQ) api(api string, args ...interface{}) (body []byte, err error)
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
-	res, err := this.GetWithReferer(API_URL + api + "?" + val.Encode())
+	res, err := this.getWithReferer(API_URL+api+"?"+val.Encode(), API_REFERER)
 	if err != nil {
 		return
 	}
@@ -59,7 +60,7 @@ func (this *WebQQ) postApi(api string, args ...interface{}) (body []byte, err er
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
-	res, err := this.PostFormWithReferer(API_URL+api, val)
+	res, err := this.postFormWithReferer(API_URL+api, API_REFERER, val)
 	if err != nil {
 		return
 	}

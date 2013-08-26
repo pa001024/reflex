@@ -10,7 +10,10 @@ import (
 	"github.com/pa001024/MoeWorker/util"
 )
 
-const CHANNEL_URL = "http://d.web2.qq.com/channel/"
+const (
+	CHANNEL_URL     = "http://d.web2.qq.com/channel/"
+	CHANNEL_REFERER = "http://d.web2.qq.com/proxy.html?v=20110331002&callback=1&id=2"
+)
 
 // 通用channel接口(GET)
 func (this *WebQQ) channel(api string, args ...interface{}) (body []byte, err error) {
@@ -23,7 +26,7 @@ func (this *WebQQ) channel(api string, args ...interface{}) (body []byte, err er
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
-	res, err := this.GetWithReferer(fmt.Sprintf("%s%s?%s", CAPTCHA_URL, api, val.Encode()))
+	res, err := this.getWithReferer(fmt.Sprintf("%s%s?%s", CAPTCHA_URL, api, val.Encode()), CHANNEL_REFERER)
 	if err != nil {
 		return
 	}
@@ -45,7 +48,7 @@ func (this *WebQQ) postChannel(api string, args ...interface{}) (body []byte, er
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
-	res, err := this.PostFormWithReferer(CAPTCHA_URL+api, val)
+	res, err := this.postFormWithReferer(CAPTCHA_URL+api, CHANNEL_REFERER, val)
 	if err != nil {
 		return
 	}
@@ -54,14 +57,75 @@ func (this *WebQQ) postChannel(api string, args ...interface{}) (body []byte, er
 	return
 }
 
+// 登录
+func (this *WebQQ) login2() (v *ResultLogin2, err error) {
+	data, err := this.postChannel(CHANNEL_URL+"login2",
+		"status", "online",
+		"ptwebqq", this.PtWebQQ,
+		"passwd_sig", "",
+	)
+	if err != nil {
+		err = json.Unmarshal(data, v)
+	}
+	return
+}
+
+/*
+ 登录 消息结构
+ -------------
+
+ {
+ 	"retcode": 0,
+ 	"result": {
+ 		"uin": 2735284921,
+ 		"cip": 3080236829,
+ 		"index": 1075,
+ 		"port": 47943,
+ 		"status": "online",
+ 		"vfwebqq": "209da35a9665546efac6e1032577fd75e8fcae3e2d7a264fc64fe598064245285ae63a270bc204f4",
+ 		"psessionid": "8368046764001d636f6e6e7365727665725f77656271714031302e3133392e372e3136300000443100000163026e0400b92209a36d0000000a404b454773376a7457646d00000028209da35a9665546efac6e1032577fd75e8fcae3e2d7a264fc64fe598064245285ae63a270bc204f4",
+ 		"user_state": 0,
+ 		"f": 0
+ 	}
+ }
+*/
+type ResultLogin2 struct {
+	Code   int    `json:"retcode"`
+	Msg    string `json:"errmsg"`
+	Result struct {
+		Uin        Uin    `json:"uin"`
+		VerifyCode string `json:"vfwebqq"`
+		SessionId  string `json:"psessionid"`
+		Status     string `json:"status"`
+		// CIP        uint32 `json:"cip"` // 没用
+		// Index     uint32 `json:"index"` // 没用
+		// Port      uint32 `json:"port"`       // 没用
+		// UserState uint32 `json:"user_state"` // 没用
+		// F          uint32 `json:"f"` // 没用
+	} `json:"result"`
+}
+
 /*
  获取在线好友
  ------------
 
  {"retcode":0,"result":[{"uin":3255435951,"status":"online","client_type":1}]}
 */
-func (this *WebQQ) get_online_buddies2() {
-	this.channel("get_online_buddies2")
+func (this *WebQQ) get_online_buddies2() (v *ResultOnlineBuddies, err error) {
+	data, err := this.channel("get_online_buddies2")
+	if err != nil {
+		err = json.Unmarshal(data, v)
+	}
+	return
+}
+
+type ResultOnlineBuddies struct {
+	Code   int `json:"retcode"`
+	Result []struct {
+		Uin        Uin    `json:"uin"`
+		Status     string `json:"status"`
+		ClientType uint32 `json:"client_type"`
+	} `json:"result"`
 }
 
 /*
@@ -70,8 +134,12 @@ func (this *WebQQ) get_online_buddies2() {
 
  {"retcode":0,"result":"ok"}
 */
-func (this *WebQQ) input_notify2(to_uin string) {
-	this.channel("input_notify2", "to_uin", to_uin)
+func (this *WebQQ) input_notify2(to_uin string) (v *Result, err error) {
+	data, err := this.channel("input_notify2", "to_uin", to_uin)
+	if err != nil {
+		err = json.Unmarshal(data, v)
+	}
+	return
 }
 
 /*

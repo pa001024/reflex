@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"strings"
+	"time"
 
 	"github.com/pa001024/MoeWorker/util"
 )
@@ -22,6 +23,8 @@ type WebQQ struct {
 	VerifyCode string
 	SessionId  string
 	PtWebQQ    string
+	LoginSig   string
+	SigUrl     string
 }
 
 // 创建WebQQ
@@ -32,41 +35,43 @@ func NewWebQQ(uid, pwd string) (this *WebQQ) {
 		Id:        uid, // 可以是邮箱或者QQ号
 		PasswdMd5: pwd,
 		ClientId:  fmt.Sprint(rand.Int31n(90000000) + 10000000),
+		SigUrl:    fmt.Sprintf("https://ui.ptlogin2.qq.com/cgi-bin/login?daid=164&target=self&style=5&mibao_css=m_webqq&appid=1003903&enable_qlogin=0&no_verifyimg=1&s_url=http%%3A%%2F%%2Fweb2.qq.com%%2Floginproxy.html&f_url=loginerroralert&strong_login=1&login_state=10&t=%s001", time.Now().Format("20060102")),
 	}
 	return
 }
 
-// 登录 [2013.8.6]
+// 登录 [2013.8.27]
 func (this *WebQQ) Login() (err error) {
 	defer util.Catch()
+	// [1]
+	this.LoginSig, err = this.ptlogin_login_sig()
+	util.DEBUG.Logf("[ptlogin_login_sig] login_sig = %s ", this.LoginSig)
+	// [2]
 	_, code, pwd, err := this.ptlogin_check()
-	util.Try(err)
-	util.DEBUG.Log("[ptlogin_check] RET OK ", code, pwd)
-	err = this.ptlogin_login(code, pwd)
-	util.Try(err)
-	util.DEBUG.Log("[ptlogin_login] RET OK ")
-	this.PtWebQQ = this.GetCookie(util.MustParseUrl(PTLOGIN_URL), "ptwebqq")
-	if this.PtWebQQ == "" {
+	util.DEBUG.Logf("[ptlogin_check] Return OK %s %s", code, pwd)
+	// [3]
+	pturl, msg, err := this.ptlogin_login(code, pwd)
+	util.DEBUG.Logf("[ptlogin_login] Return %s and check_sig = %s", msg, pturl)
+	// [4]
+	err = this.ptlogin_check_sig(pturl)
+	if this.PtWebQQ = this.getCookie(util.MustParseUrl(PTLOGIN_URL), "ptwebqq"); this.PtWebQQ == "" {
 		return fmt.Errorf("[ptwebqq] Failed to read cookie.")
 	}
-	ret, err := this.channel_login2()
-	util.Try(err)
+	// [5]
+	ret, err := this.login2()
 	if ret.Code != 0 {
-		if ret.Code == 103 {
-			ret.Msg = "Error 103"
-		}
-		return fmt.Errorf("%v : %s\n%v", ret.Code, ret.Msg, this.PtWebQQ)
+		return fmt.Errorf("[channel_login2] %v : %s", ret.Code, ret.Msg)
 	}
 	this.VerifyCode = ret.Result.VerifyCode
 	this.SessionId = ret.Result.SessionId
 	this.Uin = ret.Result.Uin
-	util.INFO.Log("Login success")
+	util.INFO.Log("[Login] Login success")
 	return
 }
 
-// 进行三次加盐MD5之类...什么的算法 [2013.8.6]
+// 进行三次加盐(uin的16b LE hex值)MD5之类...什么的算法 [2013.8.27]
 func (this *WebQQ) GenPwd(salt, code string) string {
-	vSaltedPwd := util.Md5String(this.PasswdMd5 + salt)
+	vSaltedPwd := util.Md5StringX(this.PasswdMd5 + salt)
 	return util.Md5StringX(vSaltedPwd + strings.ToUpper(code))
 }
 
@@ -74,6 +79,7 @@ var (
 	msg_id uint32 = (2000 + uint32(rand.Int31n(2999))) * 1000
 )
 
+// 给Uin发送消息
 func (this *WebQQ) SendTo(to Uin, m ContentM) (err error) {
 	r, err := this.send_buddy_msg2(to, m, msg_id)
 	msg_id++

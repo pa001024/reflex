@@ -16,5 +16,3 @@ script:
   - go test github.com/pa001024/MoeWorker/filter
   - go test github.com/pa001024/MoeWorker/target
   - go test github.com/pa001024/MoeWorker/util
-  - go test github.com/pa001024/MoeWorker/util/ascgen
-  - go test github.com/pa001024/MoeWorker/util/webqq

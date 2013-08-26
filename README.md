@@ -1,4 +1,4 @@
-MoeWorker
+MoeWorker [![Build Status](https://travis-ci.org/pa001024/MoeWorker.png?branch=master)](https://travis-ci.org/pa001024/MoeWorker)
 =========
 
 Info

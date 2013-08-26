@@ -29,14 +29,3 @@ func TestGenHash(t *testing.T) {
 		t.Fail()
 	}
 }
-
-// 测试Hash算法
-func TestGenHash2(t *testing.T) {
-	webqq_test.Uin = Uin(2735284921)
-	webqq_test.PtWebQQ = "619c5c4ca4807d3b27aac8ab3a562d4165948290c4925686acaf73133c6ad727"
-	h := webqq_test.GenHash2()
-	fmt.Println(h)
-	if h != "040A0700530A04010653515201010006050B0C0B510A070C53530403070456014247454013405B" {
-		t.Fail()
-	}
-}

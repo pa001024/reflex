@@ -2,7 +2,6 @@ package image
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"testing"
 
@@ -12,7 +11,7 @@ import (
 func TestShow(t *testing.T) {
 	f, err := os.Open("pic.jpg")
 	if err != nil {
-		t.Fail()
+		t.Skip()
 		return
 	}
 	err = ShowFile(os.Stdout, f, Console{6, 14, 120}, false, false)
@@ -24,7 +23,7 @@ func TestShow(t *testing.T) {
 func TestShowColor(t *testing.T) {
 	f, err := os.Open("cc.png")
 	if err != nil {
-		t.Fatal(err)
+		t.Skip(err)
 	}
 	err = ShowFile(os.Stdout, f, Console{6, 14, 120}, true, false)
 	if err != nil {

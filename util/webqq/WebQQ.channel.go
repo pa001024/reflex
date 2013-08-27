@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
-	"time"
 
 	"github.com/pa001024/MoeWorker/util"
 )
@@ -20,7 +19,7 @@ func (this *WebQQ) channel(api string, args ...interface{}) (body []byte, err er
 	val := url.Values{
 		"clientid":   {this.ClientId},
 		"psessionid": {this.SessionId},
-		"t":          {fmt.Sprintf("%d", time.Now().UnixNano()/1e6)},
+		"t":          {util.JsCurrentTime()},
 	}
 	l := len(args) + 1
 	for i := 0; i < l; i += 2 {

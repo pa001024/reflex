@@ -11,10 +11,8 @@ import (
 // 获取特定cookie值
 func (this *WebQQ) getCookie(url *url.URL, name string) (ret string) {
 	for _, v := range this.client.Jar.Cookies(url) {
-		// util.DEBUG.Log(v)
 		if v.Name == name {
-			ret = v.Value
-			return
+			return v.Value
 		}
 	}
 	return
@@ -22,7 +20,6 @@ func (this *WebQQ) getCookie(url *url.URL, name string) (ret string) {
 
 // 带参数Referer GET
 func (this *WebQQ) getWithReferer(urlStr, referer string) (res *http.Response, err error) {
-	// util.DEBUG.Logf("GET %s\n with referer %s", urlStr, referer)
 	req, err := http.NewRequest("GET", urlStr, nil)
 	for _, v := range this.client.Jar.Cookies(req.URL) {
 		req.AddCookie(v)

@@ -5,25 +5,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/url"
-	"time"
 
 	"github.com/pa001024/MoeWorker/util"
 )
-
-// 用户ID
-type Uin uint64
-
-func (u Uin) String() string { return fmt.Sprint(uint64(u)) }
-
-// 群信息ID
-type GCode uint64
-
-func (u GCode) String() string { return fmt.Sprint(uint64(u)) }
-
-// 真实QQ号
-type Account uint64
-
-func (u Account) String() string { return fmt.Sprint(uint64(u)) }
 
 const (
 	API_URL     = "http://s.web2.qq.com/api/"
@@ -34,7 +18,7 @@ const (
 func (this *WebQQ) api(api string, args ...interface{}) (body []byte, err error) {
 	val := url.Values{
 		"vfwebqq": {this.VerifyCode},
-		"t":       {fmt.Sprint(time.Now().UnixNano() / 1e6)},
+		"t":       {util.JsCurrentTime()},
 	}
 	l := len(args) + 1
 	for i := 0; i < l; i += 2 {
@@ -518,7 +502,7 @@ func (this *WebQQ) set_long_nick2(nlk string) (v *Result, err error) {
 func (this *WebQQ) get_user_friends2() (v *ResultUserFrientds, err error) {
 	data, err := this.postApi("get_user_friends2",
 		"h", "hello",
-		"hash", this.GenHash(),
+		"hash", this.genGetUserFriendsHash(),
 	)
 	if err != nil {
 		err = json.Unmarshal(data, v)
@@ -688,127 +672,4 @@ type GroupMark struct {
 */
 func (this *WebQQ) search_qq_by_uin2(tuin, verifysession, code string) {
 	this.api("search_qq_by_uin2", "tuin", tuin, "verifysession", verifysession, "code", code)
-}
-
-/*
- [算法] 获取好友列表的hash算法
- -----------------------------
-
- "h":"hello"
- 1. 这是一个32位分组密码
- 2. 取十进制的uin逐位与
- 2. ptwebqq中的每4个char值分组 OR 入c , 溢出则从 0 开始计算
- 3. 再 XOR 入d
- 4. 得出最后32位hash d 以hex形式返回
-
- function(b, i) {
-     for (var a = [], s = 0; s < b.length; s++)
-         a[s] = b.charAt(s) - 0;
-     for (var j = 0, d = -1, s = 0; s < a.length; s++) {
-         j += a[s];
-         j %= i.length;
-         var c = 0;
-         if (j + 4 > i.length)
-             for (var l = 4 + j - i.length, x = 0; x < 4; x++)
-                 c |= x < l ? (i.charCodeAt(j + x) & 255) << (3 - x) * 8 : (i.charCodeAt(x - l) & 255) << (3 - x) * 8;
-         else
-             for (x = 0; x < 4; x++)
-                 c |= (i.charCodeAt(j + x) & 255) << (3 - x) * 8;
-         d ^= c
-     }
-     a = [];
-     a[0] = d >> 24 & 255;
-     a[1] = d >> 16 & 255;
-     a[2] = d >> 8 & 255;
-     a[3] = d & 255;
-     d = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
-     s = "";
-     for (j = 0; j < a.length; j++)
-         s += d[a[j] >> 4 & 15], s += d[a[j] & 15];
-     return s
- }
-*/
-func (this *WebQQ) GenHash() string {
-	uin := []byte(this.Uin.String())
-	for i, v := range uin {
-		uin[i] = v - 48
-	}
-	j := uint32(0)
-	pt := []byte(this.PtWebQQ)
-	ptlen := uint32(len(pt))
-	d := uint32(0xffffffff)
-	for i, _ := range uin {
-		j = (j + uint32(uin[i])) % ptlen
-		c := uint32(0)
-		if j+4 > ptlen {
-			l := 4 + j - ptlen
-			for x := uint32(0); x < 4; x++ {
-				if x < l {
-					c |= uint32(pt[j+x]) << ((3 - x) * 8)
-				} else {
-					c |= uint32(pt[x-l]) << ((3 - x) * 8)
-				}
-			}
-		} else {
-			for x := uint32(0); x < 4; x++ {
-				c |= uint32(pt[j+x]) << ((3 - x) * 8)
-			}
-		}
-		d ^= c
-	}
-	return fmt.Sprintf("%X", d)
-}
-
-/*
- [算法] 获取好友列表的hash算法2
- ------------------------------
-
- function(b, i) {
-     for (var a = i + "password error", s = "", j = []; ; )
-         if (s.length <= a.length) {
-             if (s += b, s.length == a.length)
-                 break
-         } else {
-             s =
-             s.slice(0, a.length);
-             break
-         }
-     for (var d = 0; d < s.length; d++)
-         j[d] = s.charCodeAt(d) ^ a.charCodeAt(d);
-     a = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
-     s = "";
-     for (d = 0; d < j.length; d++)
-         s += a[j[d] >> 4 & 15], s += a[j[d] & 15];
-     return s
- }
-*/
-func (this *WebQQ) GenHash2() (ret string) {
-	a := this.PtWebQQ + "password error"
-	uin := []byte(this.Uin.String())
-
-	s := make([]byte, 0, len(a))
-	for {
-		if len(s) < len(a) {
-			s = append(s, uin...)
-			if len(s) == len(a) {
-				break
-			}
-		} else {
-			s = s[:len(a)]
-			break
-		}
-	}
-
-	j := make([]byte, len(s))
-	for i, _ := range j {
-		j[i] = s[i] ^ a[i]
-	}
-
-	const key = "0123456789ABCDEF"
-
-	for i := 0; i < len(a); i++ {
-		ret += string(key[j[i]>>4&15])
-		ret += string(key[j[i]&15])
-	}
-	return
 }

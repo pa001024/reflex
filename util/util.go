@@ -3,8 +3,6 @@ package util
 import (
 	"bytes"
 	"crypto/md5"
-	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -25,18 +23,13 @@ func EncodeHexStringX(src []byte) string {
 	return fmt.Sprintf("%X", src)
 }
 
-// unsafe
-func ToJson(args ...interface{}) string {
-	l := len(args) - 1
-	m := make(map[string]interface{})
-	for i := 0; i < l; i += 2 {
-		m[args[i].(string)] = args[i+1]
+func IsNumber(src string) bool {
+	for _, v := range src {
+		if v < '0' || v > '9' {
+			return false
+		}
 	}
-	bin, _ := json.Marshal(m)
-	if bin == nil {
-		return ""
-	}
-	return string(bin)
+	return true
 }
 
 // 解析Host 到IP+端口
@@ -59,13 +52,6 @@ func MustParseUrl(rawurl string) *url.URL {
 		panic(err)
 	}
 	return y
-}
-
-// 解析js hex值 形如 \x00
-func DecodeJsHex(src string) string {
-	src = strings.Replace(src, `\x`, "", -1)
-	v, _ := hex.DecodeString(src)
-	return string(v)
 }
 
 // 使用前缀和后缀移除可嵌套的区块

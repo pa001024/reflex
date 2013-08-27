@@ -5,7 +5,6 @@ import (
 	"math/rand"
 	"net/http"
 	"net/http/cookiejar"
-	"strings"
 	"time"
 
 	"github.com/pa001024/MoeWorker/util"
@@ -15,9 +14,10 @@ import (
 type WebQQ struct {
 	client *http.Client
 
-	Id        string
+	Id        Account
 	PasswdMd5 string
 	// 瞬态
+	IdStr      string
 	Uin        Uin
 	ClientId   string
 	VerifyCode string
@@ -27,12 +27,28 @@ type WebQQ struct {
 	SigUrl     string
 }
 
+// 用户ID
+type Uin uint64
+
+func (u Uin) String() string { return fmt.Sprint(uint64(u)) }
+
+// 群信息ID
+type GCode uint64
+
+func (u GCode) String() string { return fmt.Sprint(uint64(u)) }
+
+// 真实QQ号
+type Account uint64
+
+func (u Account) String() string { return fmt.Sprint(uint64(u)) }
+
 // 创建WebQQ
-func NewWebQQ(uid, pwd string) (this *WebQQ) {
+func NewWebQQ(uid Account, pwd string) (this *WebQQ) {
 	jar, _ := cookiejar.New(nil)
 	this = &WebQQ{
 		client:    &http.Client{nil, nil, jar},
-		Id:        uid, // 可以是邮箱或者QQ号
+		Id:        uid,
+		IdStr:     util.ToString(uid),
 		PasswdMd5: pwd,
 		ClientId:  fmt.Sprint(rand.Int31n(90000000) + 10000000),
 		SigUrl:    fmt.Sprintf("https://ui.ptlogin2.qq.com/cgi-bin/login?daid=164&target=self&style=5&mibao_css=m_webqq&appid=1003903&enable_qlogin=0&no_verifyimg=1&s_url=http%%3A%%2F%%2Fweb2.qq.com%%2Floginproxy.html&f_url=loginerroralert&strong_login=1&login_state=10&t=%s001", time.Now().Format("20060102")),
@@ -67,12 +83,6 @@ func (this *WebQQ) Login() (err error) {
 	this.Uin = ret.Result.Uin
 	util.INFO.Log("[Login] Login success")
 	return
-}
-
-// 进行三次加盐(uin的16b LE hex值)MD5之类...什么的算法 [2013.8.27]
-func (this *WebQQ) GenPwd(salt, code string) string {
-	vSaltedPwd := util.Md5StringX(this.PasswdMd5 + salt)
-	return util.Md5StringX(vSaltedPwd + strings.ToUpper(code))
 }
 
 var (

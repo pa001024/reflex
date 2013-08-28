@@ -30,13 +30,15 @@ func (this *WebQQ) getWithReferer(urlStr, referer string) (res *http.Response, e
 	ch := make(chan bool)
 	go func() {
 		res, err = this.client.Do(req)
-		this.client.Jar.SetCookies(req.URL, res.Cookies())
+		if res != nil {
+			this.client.Jar.SetCookies(req.URL, res.Cookies())
+		}
 		<-ch
 	}()
 	select {
 	case ch <- true:
-		http.DefaultTransport.(*http.Transport).CancelRequest(req)
 	case <-time.After(60 * time.Second):
+		http.DefaultTransport.(*http.Transport).CancelRequest(req)
 		err = fmt.Errorf("Timeout POST %s", urlStr)
 	}
 	close(ch)
@@ -54,13 +56,15 @@ func (this *WebQQ) postFormWithReferer(urlStr, referer string, val url.Values) (
 	ch := make(chan bool)
 	go func() {
 		res, err = this.client.Do(req)
-		this.client.Jar.SetCookies(req.URL, res.Cookies())
+		if res != nil {
+			this.client.Jar.SetCookies(req.URL, res.Cookies())
+		}
 		<-ch
 	}()
 	select {
 	case ch <- true:
-		http.DefaultTransport.(*http.Transport).CancelRequest(req)
 	case <-time.After(60 * time.Second):
+		http.DefaultTransport.(*http.Transport).CancelRequest(req)
 		err = fmt.Errorf("Timeout POST %s", urlStr)
 	}
 	close(ch)

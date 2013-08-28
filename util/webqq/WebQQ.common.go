@@ -9,15 +9,16 @@ import (
 )
 
 // 生成随机数
-func rand_r() string {
-	return fmt.Sprint(rand.ExpFloat64())
+func rand_r() string { return fmt.Sprint(rand.ExpFloat64()) }
+
+// 生成加密后的密码
+func GenEncryptPassword(uin uint64, passwd_md5 string) (epwd string) {
+	return util.Md5StringX(passwd_md5 + util.EncodeJsUint64LE(uin))
 }
 
 // 进行三次加盐(uin的16b LE hex值)MD5之类...什么的算法 [2013.8.27]
 func (this *WebQQ) genPwd(code string) string {
-	salt := util.EncodeJsUint64LE(uint64(this.Uin))
-	vSaltedPwd := util.Md5StringX(this.PasswdMd5 + salt)
-	return util.Md5StringX(vSaltedPwd + strings.ToUpper(code))
+	return util.Md5StringX(this.encrypt_password + strings.ToUpper(code))
 }
 
 /*
@@ -64,7 +65,7 @@ func (this *WebQQ) genGetUserFriendsHash() string {
 		uin[i] = v - 48
 	}
 	j := uint32(0)
-	pt := []byte(this.PtWebQQ)
+	pt := []byte(this.ptwebQQ)
 	ptlen := uint32(len(pt))
 	d := uint32(0xffffffff)
 	for i, _ := range uin {

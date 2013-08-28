@@ -17,8 +17,8 @@ const (
 // 通用channel接口(GET)
 func (this *WebQQ) channel(api string, args ...interface{}) (body []byte, err error) {
 	val := url.Values{
-		"clientid":   {this.ClientId},
-		"psessionid": {this.SessionId},
+		"clientid":   {this.clientid},
+		"psessionid": {this.psessionid},
 		"t":          {util.JsCurrentTime()},
 	}
 	l := len(args) + 1
@@ -38,10 +38,10 @@ func (this *WebQQ) channel(api string, args ...interface{}) (body []byte, err er
 func (this *WebQQ) postChannel(api string, args ...interface{}) (body []byte, err error) {
 	val := url.Values{
 		"r": {util.ToJson(
-			append(args, "clientid", this.ClientId, "psessionid", this.SessionId)...,
+			append(args, "clientid", this.clientid, "psessionid", this.psessionid)...,
 		)},
-		"clientid":   {this.ClientId},
-		"psessionid": {this.SessionId},
+		"clientid":   {this.clientid},
+		"psessionid": {this.psessionid},
 	}
 	l := len(args) + 1
 	for i := 0; i < l; i += 2 {
@@ -60,7 +60,7 @@ func (this *WebQQ) postChannel(api string, args ...interface{}) (body []byte, er
 func (this *WebQQ) login2() (v *ResultLogin2, err error) {
 	data, err := this.postChannel(_CHANNEL_URL+"login2",
 		"status", "online",
-		"ptwebqq", this.PtWebQQ,
+		"ptwebqq", this.ptwebQQ,
 		"passwd_sig", "",
 	)
 	if err != nil {

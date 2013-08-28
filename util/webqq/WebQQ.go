@@ -14,17 +14,17 @@ import (
 type WebQQ struct {
 	client *http.Client
 
-	Id        Account
-	PasswdMd5 string
+	Id               Account
+	encrypt_password string
 	// 瞬态
-	IdStr      string
+	id_str     string
 	Uin        Uin
-	ClientId   string
-	VerifyCode string
-	SessionId  string
-	PtWebQQ    string
-	LoginSig   string
-	SigUrl     string
+	clientid   string
+	vfwebqq    string
+	psessionid string
+	ptwebQQ    string
+	login_sig  string
+	sig_url    string
 }
 
 // 用户ID
@@ -46,31 +46,35 @@ func (u Account) String() string { return fmt.Sprint(uint64(u)) }
 func NewWebQQ(uid Account, pwd string) (this *WebQQ) {
 	jar, _ := cookiejar.New(nil)
 	this = &WebQQ{
-		client:    &http.Client{nil, nil, jar},
-		Id:        uid,
-		IdStr:     util.ToString(uid),
-		PasswdMd5: pwd,
-		ClientId:  fmt.Sprint(rand.Int31n(90000000) + 10000000),
-		SigUrl:    fmt.Sprintf("https://ui.ptlogin2.qq.com/cgi-bin/login?daid=164&target=self&style=5&mibao_css=m_webqq&appid=1003903&enable_qlogin=0&no_verifyimg=1&s_url=http%%3A%%2F%%2Fweb2.qq.com%%2Floginproxy.html&f_url=loginerroralert&strong_login=1&login_state=10&t=%s001", time.Now().Format("20060102")),
+		client:           &http.Client{nil, nil, jar},
+		Id:               uid,
+		id_str:           uid.String(),
+		encrypt_password: pwd,
+		clientid:         fmt.Sprint(rand.Int31n(90000000) + 10000000),
+		sig_url:          fmt.Sprintf("https://ui.ptlogin2.qq.com/cgi-bin/login?daid=164&target=self&style=5&mibao_css=m_webqq&appid=1003903&enable_qlogin=0&no_verifyimg=1&s_url=http%%3A%%2F%%2Fweb2.qq.com%%2Floginproxy.html&f_url=loginerroralert&strong_login=1&login_state=10&t=%s001", time.Now().Format("20060102")),
 	}
 	return
 }
 
 // 登录 [2013.8.27]
 func (this *WebQQ) Login() (err error) {
-	defer util.Catch()
+	defer func() {
+		if e := recover(); e != nil {
+			err = fmt.Errorf("%s", e)
+		}
+	}()
 	// [1]
-	this.LoginSig, err = this.ptlogin_login_sig()
-	util.DEBUG.Logf("[ptlogin_login_sig] login_sig = %s ", this.LoginSig)
+	this.login_sig, err = this.ptlogin_login_sig()
+	util.DEBUG.Logf("[ptlogin_login_sig] login_sig = %s ", this.login_sig)
 	// [2]
-	_, code, pwd, err := this.ptlogin_check()
-	util.DEBUG.Logf("[ptlogin_check] Return OK %s %s", code, pwd)
+	_, code, err := this.ptlogin_check()
+	util.DEBUG.Logf("[ptlogin_check] Return OK [code] %s", code)
 	// [3]
-	pturl, msg, err := this.ptlogin_login(code, pwd)
+	pturl, msg, err := this.ptlogin_login(code)
 	util.DEBUG.Logf("[ptlogin_login] Return %s and check_sig = %s", msg, pturl)
 	// [4]
 	err = this.ptlogin_check_sig(pturl)
-	if this.PtWebQQ = this.getCookie(util.MustParseUrl(_PTLOGIN_URL), "ptwebqq"); this.PtWebQQ == "" {
+	if this.ptwebQQ = this.getCookie(util.MustParseUrl(_PTLOGIN_URL), "ptwebqq"); this.ptwebQQ == "" {
 		return fmt.Errorf("[ptwebqq] Failed to read cookie.")
 	}
 	// [5]
@@ -78,8 +82,8 @@ func (this *WebQQ) Login() (err error) {
 	if ret.Code != 0 {
 		return fmt.Errorf("[channel_login2] %v : %s", ret.Code, ret.Msg)
 	}
-	this.VerifyCode = ret.Result.VerifyCode
-	this.SessionId = ret.Result.SessionId
+	this.vfwebqq = ret.Result.VerifyCode
+	this.psessionid = ret.Result.SessionId
 	this.Uin = ret.Result.Uin
 	util.INFO.Log("[Login] Login success")
 	return
@@ -117,8 +121,10 @@ func (this *WebQQ) Start() <-chan Event {
 		for _, v := range (<-in).Result {
 			e, err := RawEvent(v.Value).ParseEvent(v.Type)
 			if err == nil {
-				out <- e
+				util.ERROR.Log(err)
+				continue
 			}
+			out <- e
 		}
 	}
 	return out

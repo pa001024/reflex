@@ -13,7 +13,7 @@ import (
 func MustParseUrl(rawurl string) *url.URL {
 	y, err := url.Parse(rawurl)
 	if err != nil {
-		panic(err)
+		Throw(err.Error())
 	}
 	return y
 }
@@ -21,7 +21,9 @@ func MustParseUrl(rawurl string) *url.URL {
 // 无错返回ReadAll
 func MustReadAll(r io.Reader) []byte {
 	b, err := ioutil.ReadAll(r)
-	Throw(err.Error())
+	if err != nil {
+		Throw(err.Error())
+	}
 	return b
 }
 
@@ -32,20 +34,31 @@ func Try(e error) {
 	}
 }
 
-func Throw(s string) {
-	fup, file, line, _ := runtime.Caller(2)
+// 输出调用者
+func lastCaller(msg string, deep int) string {
+	fup, file, line, _ := runtime.Caller(deep + 1)
 	fu := runtime.FuncForPC(fup)
-	panic(fmt.Sprintf("\x0b\xad\xca\xfe%s\n    at %s(%s:%v)", s, fu.Name(), path.Base(file), line))
+	return fmt.Sprintf("%s\n    at %s(%s:%v)", msg, fu.Name(), path.Base(file), line)
+}
+
+func LastCaller(msg string) string {
+	return lastCaller(msg, 1)
+}
+
+// 抛出错误
+func throw(msg string) {
+	panic(lastCaller(msg, 1))
+}
+
+// 抛出错误
+func Throw(msg string) {
+	panic(lastCaller(msg, 2))
 }
 
 // 供给panic后恢复
 func Catch() {
 	if e := recover(); e != nil {
 		es := fmt.Sprint(e)
-		if es[:4] == "\x0b\xad\xca\xfe" {
-			ERROR.Log(es[4:])
-		} else {
-			panic(e)
-		}
+		ERROR.Log(es)
 	}
 }

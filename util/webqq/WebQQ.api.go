@@ -17,7 +17,7 @@ const (
 // 通用API接口(GET)
 func (this *WebQQ) api(api string, args ...interface{}) (body []byte, err error) {
 	val := url.Values{
-		"vfwebqq": {this.VerifyCode},
+		"vfwebqq": {this.vfwebqq},
 		"t":       {util.JsCurrentTime()},
 	}
 	l := len(args) + 1
@@ -37,7 +37,7 @@ func (this *WebQQ) api(api string, args ...interface{}) (body []byte, err error)
 func (this *WebQQ) postApi(api string, args ...interface{}) (body []byte, err error) {
 	val := url.Values{
 		"r": {util.ToJson(
-			append(args, "vfwebqq", this.VerifyCode)...,
+			append(args, "vfwebqq", this.vfwebqq)...,
 		)},
 	}
 	l := len(args) + 1

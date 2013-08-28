@@ -30,13 +30,13 @@ func JsCurrentTime() string {
 }
 
 // 解析JS风格的64位长整形
-func DecodeJsUint64LE(src string) (uin uint64) {
+func DecodeJsUint64BE(src string) (uin uint64) {
 	b := DecodeJsHex(src)
 	return binary.BigEndian.Uint64(b)
 }
 
 // 返回JS风格的64位长整形 形如\x00\x00\x00\x00\x00\x00\x00\x01 (1)
-func EncodeJsUint64LE(uin uint64) (src string) {
+func EncodeJsUint64BE(uin uint64) (src string) {
 	buf := &bytes.Buffer{}
 	binary.Write(buf, binary.BigEndian, uin)
 	return EncodeJsHex(buf.Bytes())
@@ -53,7 +53,7 @@ func DecodeJsHex(src string) []byte {
 func EncodeJsHex(src []byte) string {
 	buf := &bytes.Buffer{}
 	for _, v := range src {
-		fmt.Fprintf(buf, "\\x%x", v)
+		fmt.Fprintf(buf, "\\x%02x", v)
 	}
 	return buf.String()
 }

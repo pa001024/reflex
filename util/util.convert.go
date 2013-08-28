@@ -1,10 +1,23 @@
 package util
 
 import (
+	"encoding/binary"
 	"fmt"
 	"net"
 	"strings"
 )
+
+// 转换uint64到BE bytes -> string
+func Uint64BEString(v uint64) string {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, v)
+	return string(b)
+}
+
+// 转换BE bytes -> string到uint64
+func BEStringUint64(src string) (v uint64) {
+	return binary.BigEndian.Uint64([]byte(src))
+}
 
 // 判断字符串时都是纯数字
 func IsNumber(src string) bool {

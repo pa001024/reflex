@@ -75,3 +75,22 @@ func TestTryTimeoutCatch(t *testing.T) {
 	case <-dosomething():
 	}
 }
+
+func TestEncodeJsUint64BE(t *testing.T) {
+	v := uint64(2735284921)
+	r := EncodeJsUint64BE(v)
+	fmt.Println(r)
+	if r != `\x00\x00\x00\x00\xa3\x09\x22\xb9` {
+		t.Fail()
+	}
+}
+
+func TestUint64BEString(t *testing.T) {
+	v := uint64(2735284921)
+	r := EncodeJsHex([]byte(Uint64BEString(v)))
+	fmt.Println(r)
+	de := BEStringUint64(string(DecodeJsHex(`\x00\x00\x00\x00\xa3\x09\x22\xb9`)))
+	if de != v || r != `\x00\x00\x00\x00\xa3\x09\x22\xb9` {
+		t.Fail()
+	}
+}

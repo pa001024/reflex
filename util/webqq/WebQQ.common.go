@@ -13,7 +13,7 @@ func rand_r() string { return fmt.Sprint(rand.ExpFloat64()) }
 
 // 生成加密后的密码
 func GenEncryptPassword(uin uint64, passwd_md5 string) (epwd string) {
-	return util.Md5StringX(passwd_md5 + util.EncodeJsUint64LE(uin))
+	return util.Md5StringX(passwd_md5 + util.Uint64BEString(uin))
 }
 
 // 进行三次加盐(uin的16b LE hex值)MD5之类...什么的算法 [2013.8.27]

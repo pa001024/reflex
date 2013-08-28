@@ -15,7 +15,7 @@ const CAPTCHA_URL = "http://captcha.qq.com/"
 func (this *WebQQ) ptlogin_getimage(vc_type string) (code string, err error) {
 	res, err := this.client.Get(CAPTCHA_URL + "getimage?" + (url.Values{
 		"uin":     {this.IdStr},
-		"aid":     {WEBQQ_APPID},
+		"aid":     {_WEBQQ_APPID},
 		"r":       {rand_r()},
 		"vc_type": {vc_type}}).Encode())
 	if err != nil {

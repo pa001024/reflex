@@ -70,7 +70,7 @@ func (this *WebQQ) Login() (err error) {
 	util.DEBUG.Logf("[ptlogin_login] Return %s and check_sig = %s", msg, pturl)
 	// [4]
 	err = this.ptlogin_check_sig(pturl)
-	if this.PtWebQQ = this.getCookie(util.MustParseUrl(PTLOGIN_URL), "ptwebqq"); this.PtWebQQ == "" {
+	if this.PtWebQQ = this.getCookie(util.MustParseUrl(_PTLOGIN_URL), "ptwebqq"); this.PtWebQQ == "" {
 		return fmt.Errorf("[ptwebqq] Failed to read cookie.")
 	}
 	// [5]

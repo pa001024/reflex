@@ -1,28 +1,12 @@
 package util
 
 import (
-	"bytes"
-	"crypto/md5"
 	"fmt"
-	"io"
 	"net"
-	"net/url"
-	"path"
-	"runtime"
 	"strings"
 )
 
-const (
-	BASE62_ST = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-)
-
-func EncodeHexString(src []byte) string {
-	return fmt.Sprintf("%x", src)
-}
-func EncodeHexStringX(src []byte) string {
-	return fmt.Sprintf("%X", src)
-}
-
+// 判断字符串时都是纯数字
 func IsNumber(src string) bool {
 	for _, v := range src {
 		if v < '0' || v > '9' {
@@ -30,135 +14,6 @@ func IsNumber(src string) bool {
 		}
 	}
 	return true
-}
-
-// 解析Host 到IP+端口
-func ParseHost(host string) (ip net.IP, port int) {
-	n := strings.IndexRune(host, ':')
-	if n == -1 {
-		ip = net.ParseIP(host)
-		port = 80
-	} else {
-		ip = net.ParseIP(host[:n])
-		port = ToInt(host[n+1:])
-	}
-	return
-}
-
-// unsafe
-func MustParseUrl(rawurl string) *url.URL {
-	y, err := url.Parse(rawurl)
-	if err != nil {
-		panic(err)
-	}
-	return y
-}
-
-// 使用前缀和后缀移除可嵌套的区块
-func RemoveBlock(src, perfix, suffix string) (rst string) {
-	buf := new(bytes.Buffer)
-	c := 0
-	mi, im := len([]rune(perfix)), len([]rune(suffix))
-	s := []rune(src)
-	rl := len(s) - im
-	p, r := []rune(perfix)[0], []rune(suffix)[0]
-	i, o := 0, 0
-	for ; i < rl; i++ {
-		if s[i] == p {
-			if string(s[i:i+mi]) == perfix {
-				if c == 0 {
-					buf.WriteString(string(s[o:i]))
-				}
-				c++
-				o = i + mi
-			}
-		} else if s[i] == r {
-			if string(s[i:i+im]) == suffix {
-				c--
-				o = i + im
-			}
-		}
-	}
-	if c == 0 {
-		buf.WriteString(string(s[o:]))
-	}
-	return buf.String()
-}
-
-// 快速Hash
-func HashCode(str string) (hash int) {
-	for _, v := range str {
-		hash = int(v) + (hash << 6) + (hash << 16) - hash
-	}
-	return hash & 0x7FFFFFFF
-}
-
-// 检查值是否在数组中
-func IsInArray(arr []string, sub string) bool {
-	for _, v := range arr {
-		if v == sub {
-			return true
-		}
-	}
-	return false
-}
-
-// 检查数组元素是否重复
-func IsArrayDuplicate(arr []string, arr2 []string) bool {
-	if len(arr)*len(arr2) > 1000 {
-		return IsArrayDuplicateOpt(arr, arr2)
-	}
-	// O(n^2)
-	for _, v := range arr {
-		for _, v2 := range arr2 {
-			if v == v2 {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-// 检查数组元素是否重复 - 性能优化版(空间换时间)
-func IsArrayDuplicateOpt(arr []string, arr2 []string) bool {
-	// O((n1 log n1) + n2) :: len(n2) > len(n1)
-	if len(arr) > len(arr2) {
-		arr, arr2 = arr2, arr
-	}
-	m := make(map[string]bool)
-	for _, v := range arr {
-		m[v] = true
-	}
-	for _, v := range arr2 {
-		if m[v] {
-			return true
-		}
-	}
-	return false
-}
-
-// MD5 返回binary结果
-func Md5(src string) (rst string) {
-	h := md5.New()
-	io.WriteString(h, src)
-	rst = fmt.Sprintf("%s", h.Sum(nil))
-	return
-}
-
-// MD5 返回 hex结果
-func Md5String(src string) (rst string) {
-	h := md5.New()
-	io.WriteString(h, src)
-	rst = fmt.Sprintf("%x", h.Sum(nil))
-	return
-}
-
-// MD5 返回 hex结果大写
-func Md5StringX(src string) (rst string) {
-	h := md5.New()
-	io.WriteString(h, src)
-	rst = fmt.Sprintf("%X", h.Sum(nil))
-	return
 }
 
 // 转换字符串到int
@@ -182,74 +37,25 @@ func ToString(src interface{}) string {
 	return fmt.Sprint(src)
 }
 
-// 新浪微博base62编码
-func Base62(src int64) (rst string) {
-	for {
-		a := src % 62
-		rst = string(BASE62_ST[a]) + rst
-		src = src / 62
-		if src <= 0 {
-			break
-		}
-	}
-	return rst
+// 编码hex
+func EncodeHexString(src []byte) string {
+	return fmt.Sprintf("%x", src)
 }
 
-// 新浪微博base62解码
-func DeBase62(src string) (rst int64) {
-	for _, v := range src {
-		a := int64(strings.IndexRune(BASE62_ST, v))
-		if a < 0 {
-			continue
-		}
-		rst = rst*62 + a
+// 编码hex (大写)
+func EncodeHexStringX(src []byte) string {
+	return fmt.Sprintf("%X", src)
+}
+
+// 解析Host 到IP+端口
+func ParseHost(host string) (ip net.IP, port int) {
+	n := strings.IndexRune(host, ':')
+	if n == -1 {
+		ip = net.ParseIP(host)
+		port = 80
+	} else {
+		ip = net.ParseIP(host[:n])
+		port = ToInt(host[n+1:])
 	}
 	return
-}
-
-// 新浪微博base62分组编码
-func Base62Url(mid string) (url string) {
-	const STEP = 7
-	for i := len(mid) - STEP; i > -STEP; i -= STEP {
-		if i < 0 {
-			url = Base62(ToInt64(mid[0:i+STEP])) + url
-		} else {
-			url = Base62(ToInt64(mid[i:i+STEP])) + url
-		}
-	}
-	return
-}
-
-// 新浪微博base62分组解码
-func DeBase62Url(url string) (mid string) {
-	const STEP = 4
-	for i := len(url) - STEP; i > -STEP; i -= STEP {
-		if i < 0 {
-			mid = ToString(DeBase62(url[0:i+STEP])) + mid
-		} else {
-			mid = ToString(DeBase62(url[i:i+STEP])) + mid
-		}
-	}
-	return
-}
-
-// 出错崩溃
-func Try(e error) {
-	if e != nil {
-		fup, file, line, _ := runtime.Caller(1)
-		fu := runtime.FuncForPC(fup)
-		panic(fmt.Sprintf("\x0b\xad\xca\xfe%s\n    at %s(%s:%v)", e.Error(), fu.Name(), path.Base(file), line))
-	}
-}
-
-// 供给panic后恢复
-func Catch() {
-	if e := recover(); e != nil {
-		es := fmt.Sprint(e)
-		if es[:4] == "\x0b\xad\xca\xfe" {
-			ERROR.Log(es[4:])
-		} else {
-			panic(e)
-		}
-	}
 }

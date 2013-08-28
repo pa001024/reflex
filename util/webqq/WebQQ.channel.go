@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	CHANNEL_URL     = "http://d.web2.qq.com/channel/"
-	CHANNEL_REFERER = "http://d.web2.qq.com/proxy.html?v=20110331002&callback=1&id=2"
+	_CHANNEL_URL     = "http://d.web2.qq.com/channel/"
+	_CHANNEL_REFERER = "http://d.web2.qq.com/proxy.html?v=20110331002&callback=1&id=2"
 )
 
 // 通用channel接口(GET)
@@ -25,7 +25,7 @@ func (this *WebQQ) channel(api string, args ...interface{}) (body []byte, err er
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
-	res, err := this.getWithReferer(fmt.Sprintf("%s%s?%s", CAPTCHA_URL, api, val.Encode()), CHANNEL_REFERER)
+	res, err := this.getWithReferer(fmt.Sprintf("%s%s?%s", CAPTCHA_URL, api, val.Encode()), _CHANNEL_REFERER)
 	if err != nil {
 		return
 	}
@@ -47,7 +47,7 @@ func (this *WebQQ) postChannel(api string, args ...interface{}) (body []byte, er
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
-	res, err := this.postFormWithReferer(CAPTCHA_URL+api, CHANNEL_REFERER, val)
+	res, err := this.postFormWithReferer(CAPTCHA_URL+api, _CHANNEL_REFERER, val)
 	if err != nil {
 		return
 	}
@@ -58,7 +58,7 @@ func (this *WebQQ) postChannel(api string, args ...interface{}) (body []byte, er
 
 // 登录
 func (this *WebQQ) login2() (v *ResultLogin2, err error) {
-	data, err := this.postChannel(CHANNEL_URL+"login2",
+	data, err := this.postChannel(_CHANNEL_URL+"login2",
 		"status", "online",
 		"ptwebqq", this.PtWebQQ,
 		"passwd_sig", "",

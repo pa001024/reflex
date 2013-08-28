@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	WEBQQ_APPID  = "1003903"
-	WEBQQ_TYPE   = "10"
-	PTLOGIN_URL  = "https://ssl.ptlogin2.qq.com/"
-	JS_VER       = "10037"     // [2013-8-27] 10041
-	LOGIN_ACTION = "2-10-5837" // [2013-8-27] 4-9-7230
+	_WEBQQ_APPID  = "1003903"
+	_WEBQQ_TYPE   = "10"
+	_PTLOGIN_URL  = "https://ssl.ptlogin2.qq.com/"
+	_JS_VER       = "10037"     // [2013-8-27] 10041
+	_LOGIN_ACTION = "2-10-5837" // [2013-8-27] 4-9-7230
 )
 
 // [1]检查前获取sig, 永久 [2013-8-27]
@@ -32,10 +32,10 @@ func (this *WebQQ) ptlogin_login_sig() (login_sig string, err error) {
 // [2]检查, 可重复
 func (this *WebQQ) ptlogin_check() (codetoken, code, pwd string, err error) {
 	util.DEBUG.Log("[ptlogin_check] Start")
-	res, err := this.getWithReferer(PTLOGIN_URL+"check?"+(url.Values{
+	res, err := this.getWithReferer(_PTLOGIN_URL+"check?"+(url.Values{
 		"uin":     {this.IdStr},
-		"appid":   {WEBQQ_APPID},
-		"js_ver":  {JS_VER},
+		"appid":   {_WEBQQ_APPID},
+		"js_ver":  {_JS_VER},
 		"js_type": {"0"}, "u1": {"http://web2.qq.com/loginproxy.html"},
 		"r": {rand_r()}}).Encode(), this.SigUrl)
 	util.Try(err)
@@ -60,14 +60,14 @@ func (this *WebQQ) ptlogin_check() (codetoken, code, pwd string, err error) {
 // [3]单点登录, 可重复
 func (this *WebQQ) ptlogin_login(code, pwd string) (urlStr, msg string, err error) {
 	res, err := this.getWithReferer(
-		PTLOGIN_URL+"login?"+(url.Values{
+		_PTLOGIN_URL+"login?"+(url.Values{
 			"u":            {this.IdStr},
 			"p":            {pwd},
 			"verifycode":   {code},
-			"webqq_type":   {WEBQQ_TYPE},
-			"action":       {LOGIN_ACTION},
-			"js_ver":       {JS_VER},
-			"aid":          {WEBQQ_APPID},
+			"webqq_type":   {_WEBQQ_TYPE},
+			"action":       {_LOGIN_ACTION},
+			"js_ver":       {_JS_VER},
+			"aid":          {_WEBQQ_APPID},
 			"remember_uin": {"1"}, "login2qq": {"1"}, "u1": {"http://web2.qq.com/loginproxy.html?login2qq=1&webqq_type=10"}, "h": {"1"}, "ptredirect": {"0"}, "ptlang": {"2052"}, "daid": {"164"}, "from_ui": {"1"}, "pttype": {"1"}, "dumy": {""}, "fp": {"loginerroralert"}, "mibao_css": {"m_webqq"}, "t": {"1"}, "g": {"1"}, "js_type": {"0"},
 			"login_sig": {this.LoginSig}}).Encode(), this.SigUrl)
 	util.Try(err)
@@ -82,7 +82,6 @@ func (this *WebQQ) ptlogin_login(code, pwd string) (urlStr, msg string, err erro
 		err = fmt.Errorf("[ptlogin_login]失败返回值: %s", string(bs))
 		util.Try(err)
 	}
-	//ptuiCB('0','0','http://web.qq.com/loginproxy.html?login2qq=1&webqq_type=10','0','登录成功！', '菊菊菊菊菊菊');
 	//ptuiCB('0','0','http://ptlogin4.web2.qq.com/check_sig?pttype=1&uin=2735284921&service=login&nodirect=0&ptsig=MPlx81vcwwhHDYZeAsCdaFoQg3nTXyy67sQAYCewxu0_&s_url=http%3a%2f%2fweb2.qq.com%2floginproxy.html%3flogin2qq%3d1%26webqq%5ftype%3d10&f_url=&ptlang=2052&ptredirect=100&aid=1003903&daid=164&j_later=0&low_login_hour=0&regmaster=0','0','登录成功！', '菊菊菊菊菊菊');
 
 	urlStr = ss[5]

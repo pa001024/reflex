@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	API_URL     = "http://s.web2.qq.com/api/"
-	API_REFERER = "http://s.web2.qq.com/proxy.html?v=20110412001&callback=1&id=3"
+	_API_URL     = "http://s.web2.qq.com/api/"
+	_API_REFERER = "http://s.web2.qq.com/proxy.html?v=20110412001&callback=1&id=3"
 )
 
 // 通用API接口(GET)
@@ -24,7 +24,7 @@ func (this *WebQQ) api(api string, args ...interface{}) (body []byte, err error)
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
-	res, err := this.getWithReferer(API_URL+api+"?"+val.Encode(), API_REFERER)
+	res, err := this.getWithReferer(_API_URL+api+"?"+val.Encode(), _API_REFERER)
 	if err != nil {
 		return
 	}
@@ -44,7 +44,7 @@ func (this *WebQQ) postApi(api string, args ...interface{}) (body []byte, err er
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
-	res, err := this.postFormWithReferer(API_URL+api, API_REFERER, val)
+	res, err := this.postFormWithReferer(_API_URL+api, _API_REFERER, val)
 	if err != nil {
 		return
 	}

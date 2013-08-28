@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// 解析事件
 func (data RawEvent) ParseEvent(poll_type string) (v Event, err error) {
 	switch poll_type {
 	case "message":

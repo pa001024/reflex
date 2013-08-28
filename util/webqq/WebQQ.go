@@ -114,23 +114,25 @@ func (this *WebQQ) Start() <-chan Event {
 	out := make(chan Event)
 	go func() {
 		for {
-			r, err := this.poll2() // TODO: 超时处理
+			r, err := this.poll2()
 			if err != nil {
-				util.WARN.Logf("poll2() throw error: %v", err)
+				util.WARN.Logf("[poll] throw error: %v", err)
 			} else if r != nil {
 				in <- r
 			}
 		}
 	}()
-	for {
-		for _, v := range (<-in).Result {
-			e, err := RawEvent(v.Value).ParseEvent(v.Type)
-			if err == nil {
-				util.ERROR.Log(err)
-				continue
+	go func() {
+		for {
+			for _, v := range (<-in).Result {
+				e, err := RawEvent(v.Value).ParseEvent(v.Type)
+				if err != nil {
+					util.WARN.Log(err)
+					continue
+				}
+				out <- e
 			}
-			out <- e
 		}
-	}
+	}()
 	return out
 }

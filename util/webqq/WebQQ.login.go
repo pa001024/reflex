@@ -54,7 +54,7 @@ func (this *WebQQ) ptlogin_check() (codetoken, code string, err error) {
 		err = fmt.Errorf("[ptlogin_check]失败返回值: %s", s)
 	}
 	util.Try(err)
-	util.DEBUG.Logf("[ptlogin_check] Return OK [code] %s", code)
+	util.DEBUG.Logf("[ptlogin_check] return OK [code] %s", code)
 	return
 }
 
@@ -82,7 +82,7 @@ func (this *WebQQ) ptlogin_login(code string) (urlStr string, err error) {
 	}
 	//ptuiCB('0','0','http://ptlogin4.web2.qq.com/check_sig?pttype=1&uin=2735284921&service=login&nodirect=0&ptsig=MPlx81vcwwhHDYZeAsCdaFoQg3nTXyy67sQAYCewxu0_&s_url=http%3a%2f%2fweb2.qq.com%2floginproxy.html%3flogin2qq%3d1%26webqq%5ftype%3d10&f_url=&ptlang=2052&ptredirect=100&aid=1003903&daid=164&j_later=0&low_login_hour=0&regmaster=0','0','登录成功！', '菊菊菊菊菊菊');
 	urlStr = ss[5]
-	util.DEBUG.Logf("[ptlogin_login] Return %s", ss[9])
+	util.DEBUG.Logf("[ptlogin_login] return %s", ss[9])
 	return
 }
 
@@ -91,6 +91,6 @@ func (this *WebQQ) ptlogin_check_sig(urlStr string) (err error) {
 	res, err := this.client.Get(urlStr)
 	util.Try(err)
 	res.Body.Close()
-	util.DEBUG.Logf("[ptlogin_check_sig] %s", urlStr)
+	util.DEBUG.Logf("[ptlogin_check_sig] check ok")
 	return
 }

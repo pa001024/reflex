@@ -12,7 +12,7 @@ import (
 // 默认四个日志级别
 var (
 	DEBUG = NewLogger(os.Stderr, false, "[DEBUG] ")
-	WARN  = NewLogger(os.Stderr, true, "[WARNING] ")
+	WARN  = NewLogger(os.Stderr, true, "[WARN] ")
 	ERROR = NewLogger(os.Stderr, true, "[ERROR] ")
 	INFO  = NewLogger(os.Stdout, true, "[INFO] ")
 )

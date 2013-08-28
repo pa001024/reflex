@@ -20,7 +20,7 @@ func (this *WebQQ) api(api string, args ...interface{}) (body []byte, err error)
 		"vfwebqq": {this.vfwebqq},
 		"t":       {util.JsCurrentTime()},
 	}
-	l := len(args) + 1
+	l := len(args) - 1
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
@@ -40,7 +40,7 @@ func (this *WebQQ) postApi(api string, args ...interface{}) (body []byte, err er
 			append(args, "vfwebqq", this.vfwebqq)...,
 		)},
 	}
-	l := len(args) + 1
+	l := len(args) - 1
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
@@ -62,7 +62,8 @@ type Result struct {
 func (this *WebQQ) get_group_member_stat2(gcode GCode) (v *ResultGroupMemberStat, err error) {
 	util.DEBUG.Logf("get_group_member_stat2(gcode = %v)", gcode)
 	data, err := this.api("get_group_member_stat2", "gcode", gcode)
-	if err != nil {
+	if err == nil {
+		v = &ResultGroupMemberStat{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -90,7 +91,8 @@ type ResultGroupMemberStat struct {
 func (this *WebQQ) get_self_business_card2(gcode string) (v *ResultSelfBusinessCard, err error) {
 	util.DEBUG.Logf("get_self_business_card2(gcode = %v)", gcode)
 	data, err := this.api("get_self_business_card2", "gcode", gcode)
-	if err != nil {
+	if err == nil {
+		v = &ResultSelfBusinessCard{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -112,7 +114,8 @@ type ResultSelfBusinessCard struct {
 func (this *WebQQ) get_group_info(gcode, retainKey string) (v *ResultGroupInfo, err error) {
 	util.DEBUG.Logf("get_group_info(gcode = %v, retainKey = %v)", gcode, retainKey)
 	data, err := this.api("get_group_info", "gcode", gcode, "retainKey", retainKey)
-	if err != nil {
+	if err == nil {
+		v = &ResultGroupInfo{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -136,7 +139,8 @@ type ResultGroupInfo struct {
 func (this *WebQQ) get_group_info_ext2(gcode string) (v *ResultGroupInfoExt, err error) {
 	util.DEBUG.Logf("get_group_info_ext2(gcode = %v)", gcode)
 	data, err := this.api("get_group_info_ext2", "gcode", gcode)
-	if err != nil {
+	if err == nil {
+		v = &ResultGroupInfoExt{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -273,7 +277,8 @@ type VipInfo struct {
 func (this *WebQQ) get_friend_uin2(tuin Uin, type_ string) (v *ResultFriendUin, err error) {
 	util.DEBUG.Logf("get_friend_uin2(tuin = %v, type = %v)", tuin, type_)
 	data, err := this.api("get_friend_uin2", "tuin", tuin, "type", type_)
-	if err != nil {
+	if err == nil {
+		v = &ResultFriendUin{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -298,7 +303,8 @@ type ResultFriendUin struct {
 func (this *WebQQ) get_friend_info2(tuin string) (v *ResultFriendInfo, err error) {
 	util.DEBUG.Logf("get_friend_uin2(tuin = %v)", tuin)
 	data, err := this.api("get_friend_info2", "tuin", tuin)
-	if err != nil {
+	if err == nil {
+		v = &ResultFriendInfo{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -387,7 +393,8 @@ type Birthday struct {
 */
 func (this *WebQQ) get_allow_info2(tuin string) (v *ResultAllowInfo, err error) {
 	data, err := this.api("get_allow_info2", "tuin", tuin, "retainKey", "allow")
-	if err != nil {
+	if err == nil {
+		v = &ResultAllowInfo{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -409,7 +416,8 @@ type ResultAllowInfo struct {
 // 获取签名
 func (this *WebQQ) get_single_long_nick2(tuin string) (v *ResultSingleLongNick, err error) {
 	data, err := this.api("get_single_long_nick2", "tuin", tuin)
-	if err != nil {
+	if err == nil {
+		v = &ResultSingleLongNick{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -433,7 +441,8 @@ type ResultSingleLongNick struct {
 // 获取等级
 func (this *WebQQ) get_qq_level2(tuin string) (v *ResultQQLevel, err error) {
 	data, err := this.api("get_qq_level2", "tuin", tuin)
-	if err != nil {
+	if err == nil {
+		v = &ResultQQLevel{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -487,7 +496,8 @@ type ResultDiscusList struct {
 */
 func (this *WebQQ) set_long_nick2(nlk string) (v *Result, err error) {
 	data, err := this.postApi("set_long_nick2", "nlk", nlk)
-	if err != nil {
+	if err == nil {
+		v = &Result{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -504,7 +514,8 @@ func (this *WebQQ) get_user_friends2() (v *ResultUserFrientds, err error) {
 		"h", "hello",
 		"hash", this.genGetUserFriendsHash(),
 	)
-	if err != nil {
+	if err == nil {
+		v = &ResultUserFrientds{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -589,7 +600,8 @@ type Info struct {
 */
 func (this *WebQQ) update_group_info2(gcode GCode, markname string) (v *Result, err error) {
 	data, err := this.postApi("update_group_info2", "gcode", gcode, "markname", markname)
-	if err != nil {
+	if err == nil {
+		v = &Result{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -604,7 +616,8 @@ func (this *WebQQ) update_group_info2(gcode GCode, markname string) (v *Result, 
 */
 func (this *WebQQ) quit_group2(gcode GCode) (v *Result, err error) {
 	data, err := this.postApi("quit_group2", "gcode", gcode)
-	if err != nil {
+	if err == nil {
+		v = &Result{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -616,8 +629,13 @@ func (this *WebQQ) quit_group2(gcode GCode) (v *Result, err error) {
 
  r = {"vfwebqq":"..."}
 */
-func (this *WebQQ) get_group_name_list_mask2() {
-	this.postApi("get_group_name_list_mask2")
+func (this *WebQQ) get_group_name_list_mask2() (v *Result, err error) {
+	data, err := this.postApi("get_group_name_list_mask2")
+	if err == nil {
+		v = &Result{}
+		err = json.Unmarshal(data, v)
+	}
+	return
 }
 
 /*
@@ -670,6 +688,11 @@ type GroupMark struct {
 
  {"retcode":0,"result":{"face":147,"birthday":{"month":4,"year":1996,"day":9},"occupation":"待业/无业/失业","phone":"","allow":4,"college":"","constel":3,"blood":0,"stat":20,"homepage":"","country":"中国","city":"温州","uiuin":"","personal":"爱上你，不是因为你给了我需要的东西，而是因为你给了我从未有过的感觉。","nick":"小さくて暗い","shengxiao":1,"email":"","token":"e5c67a587252c899fac04fce508372b0e650b1622faa7230","province":"浙江","account":1159549778,"gender":"male","tuin":2265896498,"mobile":"-"}}
 */
-func (this *WebQQ) search_qq_by_uin2(tuin, verifysession, code string) {
-	this.api("search_qq_by_uin2", "tuin", tuin, "verifysession", verifysession, "code", code)
+func (this *WebQQ) search_qq_by_uin2(tuin, verifysession, code string) (v *Result, err error) {
+	data, err := this.api("search_qq_by_uin2", "tuin", tuin, "verifysession", verifysession, "code", code)
+	if err == nil {
+		v = &Result{}
+		err = json.Unmarshal(data, v)
+	}
+	return
 }

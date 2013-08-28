@@ -26,6 +26,7 @@ func (this *WebQQ) ptlogin_login_sig() (login_sig string, err error) {
 	util.Try(err)
 	res.Body.Close()
 	login_sig = regexp.MustCompile(`var g_login_sig=encodeURIComponent\("(.+?)"\);`).FindStringSubmatch(string(bs))[1]
+	util.DEBUG.Logf("[ptlogin_login_sig] login_sig = %s ", login_sig)
 	return
 }
 
@@ -53,11 +54,12 @@ func (this *WebQQ) ptlogin_check() (codetoken, code string, err error) {
 		err = fmt.Errorf("[ptlogin_check]失败返回值: %s", s)
 	}
 	util.Try(err)
+	util.DEBUG.Logf("[ptlogin_check] Return OK [code] %s", code)
 	return
 }
 
 // [3]单点登录, 可重复
-func (this *WebQQ) ptlogin_login(code string) (urlStr, msg string, err error) {
+func (this *WebQQ) ptlogin_login(code string) (urlStr string, err error) {
 	res, err := this.getWithReferer(
 		_PTLOGIN_URL+"login?"+(url.Values{
 			"u":            {this.id_str},
@@ -76,21 +78,19 @@ func (this *WebQQ) ptlogin_login(code string) (urlStr, msg string, err error) {
 	// 出错
 	if ss[1] != "0" {
 		err = fmt.Errorf("[ptlogin_login] fail_login %s:%s", ss[1], ss[9])
-		util.Try(err)
+		return
 	}
 	//ptuiCB('0','0','http://ptlogin4.web2.qq.com/check_sig?pttype=1&uin=2735284921&service=login&nodirect=0&ptsig=MPlx81vcwwhHDYZeAsCdaFoQg3nTXyy67sQAYCewxu0_&s_url=http%3a%2f%2fweb2.qq.com%2floginproxy.html%3flogin2qq%3d1%26webqq%5ftype%3d10&f_url=&ptlang=2052&ptredirect=100&aid=1003903&daid=164&j_later=0&low_login_hour=0&regmaster=0','0','登录成功！', '菊菊菊菊菊菊');
 	urlStr = ss[5]
-	msg = ss[9]
-	if strings.HasPrefix(urlStr, "http://web2.qq.com/loginproxy") {
-		util.WARN.Log("[ptlogin_login] fail_check_sig")
-	}
+	util.DEBUG.Logf("[ptlogin_login] Return %s", ss[9])
 	return
 }
 
 // [4]用获取cookie [2013-8-27]
-func (this *WebQQ) ptlogin_check_sig(oldurl string) (err error) {
-	res, err := this.client.Get(oldurl)
+func (this *WebQQ) ptlogin_check_sig(urlStr string) (err error) {
+	res, err := this.client.Get(urlStr)
 	util.Try(err)
 	res.Body.Close()
+	util.DEBUG.Logf("[ptlogin_check_sig] %s", urlStr)
 	return
 }

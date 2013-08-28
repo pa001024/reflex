@@ -9,11 +9,11 @@ import (
 	asc "github.com/pa001024/MoeWorker/util/ascgen"
 )
 
-const CAPTCHA_URL = "http://captcha.qq.com/"
+const _CAPTCHA_URL = "http://captcha.qq.com/"
 
 // 获取验证码
 func (this *WebQQ) ptlogin_getimage(vc_type string) (code string, err error) {
-	res, err := this.client.Get(CAPTCHA_URL + "getimage?" + (url.Values{
+	res, err := this.client.Get(_CAPTCHA_URL + "getimage?" + (url.Values{
 		"uin":     {this.id_str},
 		"aid":     {_WEBQQ_APPID},
 		"r":       {rand_r()},

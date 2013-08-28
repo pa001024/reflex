@@ -21,11 +21,11 @@ func (this *WebQQ) channel(api string, args ...interface{}) (body []byte, err er
 		"psessionid": {this.psessionid},
 		"t":          {util.JsCurrentTime()},
 	}
-	l := len(args) + 1
+	l := len(args) - 1
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
-	res, err := this.getWithReferer(fmt.Sprintf("%s%s?%s", CAPTCHA_URL, api, val.Encode()), _CHANNEL_REFERER)
+	res, err := this.getWithReferer(fmt.Sprintf("%s%s?%s", _CHANNEL_URL, api, val.Encode()), _CHANNEL_REFERER)
 	if err != nil {
 		return
 	}
@@ -43,11 +43,11 @@ func (this *WebQQ) postChannel(api string, args ...interface{}) (body []byte, er
 		"clientid":   {this.clientid},
 		"psessionid": {this.psessionid},
 	}
-	l := len(args) + 1
+	l := len(args) - 1
 	for i := 0; i < l; i += 2 {
 		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
 	}
-	res, err := this.postFormWithReferer(CAPTCHA_URL+api, _CHANNEL_REFERER, val)
+	res, err := this.postFormWithReferer(_CHANNEL_URL+api, _CHANNEL_REFERER, val)
 	if err != nil {
 		return
 	}
@@ -58,12 +58,9 @@ func (this *WebQQ) postChannel(api string, args ...interface{}) (body []byte, er
 
 // 登录
 func (this *WebQQ) login2() (v *ResultLogin2, err error) {
-	data, err := this.postChannel(_CHANNEL_URL+"login2",
-		"status", "online",
-		"ptwebqq", this.ptwebQQ,
-		"passwd_sig", "",
-	)
-	if err != nil {
+	data, err := this.postChannel("login2", "status", "online", "ptwebqq", this.ptwebQQ, "passwd_sig", "")
+	if err == nil {
+		v = &ResultLogin2{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -112,7 +109,8 @@ type ResultLogin2 struct {
 */
 func (this *WebQQ) get_online_buddies2() (v *ResultOnlineBuddies, err error) {
 	data, err := this.channel("get_online_buddies2")
-	if err != nil {
+	if err == nil {
+		v = &ResultOnlineBuddies{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -135,7 +133,8 @@ type ResultOnlineBuddies struct {
 */
 func (this *WebQQ) input_notify2(to_uin string) (v *Result, err error) {
 	data, err := this.channel("input_notify2", "to_uin", to_uin)
-	if err != nil {
+	if err == nil {
+		v = &Result{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -153,7 +152,8 @@ func (this *WebQQ) input_notify2(to_uin string) (v *Result, err error) {
 */
 func (this *WebQQ) shake2(to_uin string) (v *Result, err error) {
 	data, err := this.channel("shake2", "to_uin", to_uin)
-	if err != nil {
+	if err == nil {
+		v = &Result{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -167,7 +167,8 @@ func (this *WebQQ) shake2(to_uin string) (v *Result, err error) {
 */
 func (this *WebQQ) get_recent_list2() (v *ResultRecentList, err error) {
 	data, err := this.postChannel("get_recent_list2")
-	if err != nil {
+	if err == nil {
+		v = &ResultRecentList{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -203,7 +204,8 @@ func (this *WebQQ) send_buddy_msg2(to Uin, content ContentM, msg_id uint32) (v *
 		"content", content.Encode().EncodeString(),
 		"msg_id", msg_id,
 	)
-	if err != nil {
+	if err == nil {
+		v = &Result{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -229,7 +231,8 @@ func (this *WebQQ) send_qun_msg2(group_uin Uin, content ContentM, msg_id uint32)
 		"content", content.Encode().EncodeString(),
 		"msg_id", msg_id,
 	)
-	if err != nil {
+	if err == nil {
+		v = &Result{}
 		err = json.Unmarshal(data, v)
 	}
 	return
@@ -237,9 +240,9 @@ func (this *WebQQ) send_qun_msg2(group_uin Uin, content ContentM, msg_id uint32)
 
 // 获取消息
 func (this *WebQQ) poll2() (v *ResultPoll, err error) {
-	util.DEBUG.Log("poll2()")
 	data, err := this.postChannel("poll2")
-	if err != nil {
+	if err == nil {
+		v = &ResultPoll{}
 		err = json.Unmarshal(data, v)
 	}
 	return

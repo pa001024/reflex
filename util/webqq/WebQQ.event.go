@@ -8,15 +8,15 @@ import (
 func (data RawEvent) ParseEvent(poll_type string) (v Event, err error) {
 	switch poll_type {
 	case "message":
-		var d *EventMessage
+		d := &EventMessage{}
 		err = json.Unmarshal(data, d)
 		v = d
 	case "group_message":
-		var d *EventGroupMessage
+		d := &EventGroupMessage{}
 		err = json.Unmarshal(data, d)
 		v = d
 	case "buddies_status_change":
-		var d *EventBuddiesStatusChange
+		d := &EventBuddiesStatusChange{}
 		err = json.Unmarshal(data, d)
 		v = d
 	default:
@@ -39,15 +39,15 @@ type Event interface{}
  	"reply_ip": 176756886,
  	"time": 1375794494,
  	"content": [
- 			["font",
- 			{
- 				"size": 10,
- 				"color": "000000",
- 				"style": [0, 0, 0],
- 				"name": "\u5FAE\u8F6F\u96C5\u9ED1"
- 			}],
- 			"\u53E5\u53E5\u53E5 "
- 		]
+		["font",
+		{
+			"size": 10,
+			"color": "000000",
+			"style": [0, 0, 0],
+			"name": "\u5FAE\u8F6F\u96C5\u9ED1"
+		}],
+		"\u53E5\u53E5\u53E5 "
+	]
  }
 */
 type EventMessage struct {

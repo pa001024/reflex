@@ -63,22 +63,27 @@ func (this *WebQQ) Login() (err error) {
 			err = fmt.Errorf("%s", e)
 		}
 	}()
-	// [1]
+	// [1] login_sig
 	this.login_sig, err = this.ptlogin_login_sig()
-	util.DEBUG.Logf("[ptlogin_login_sig] login_sig = %s ", this.login_sig)
-	// [2]
+	util.Try(err)
+check:
+	// [2] check
 	_, code, err := this.ptlogin_check()
-	util.DEBUG.Logf("[ptlogin_check] Return OK [code] %s", code)
-	// [3]
-	pturl, msg, err := this.ptlogin_login(code)
-	util.DEBUG.Logf("[ptlogin_login] Return %s and check_sig = %s", msg, pturl)
-	// [4]
+	util.Try(err)
+	// [3] login
+	pturl, err := this.ptlogin_login(code)
+	if err != nil {
+		goto check
+	}
+	// [4] check_sig
 	err = this.ptlogin_check_sig(pturl)
+	util.Try(err)
 	if this.ptwebQQ = this.getCookie(util.MustParseUrl(_PTLOGIN_URL), "ptwebqq"); this.ptwebQQ == "" {
 		return fmt.Errorf("[ptwebqq] Failed to read cookie.")
 	}
-	// [5]
+	// [5] login2
 	ret, err := this.login2()
+	util.Try(err)
 	if ret.Code != 0 {
 		return fmt.Errorf("[channel_login2] %v : %s", ret.Code, ret.Msg)
 	}

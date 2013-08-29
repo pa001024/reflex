@@ -103,7 +103,7 @@ func (this *WebQQ) SendTo(to Uin, m ContentM) (err error) {
 	r, err := this.send_buddy_msg2(to, m, msg_id)
 	msg_id++
 	if r != nil && err == nil {
-		err = fmt.Errorf("SendTo() return code %v", r.Code)
+		err = fmt.Errorf("[SendTo] return %v", r.Code)
 	}
 	return
 }

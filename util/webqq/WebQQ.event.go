@@ -3,6 +3,8 @@ package webqq
 import (
 	"encoding/json"
 	"fmt"
+
+	"github.com/pa001024/MoeWorker/util"
 )
 
 // 解析事件
@@ -22,6 +24,7 @@ func (data RawEvent) ParseEvent(poll_type string) (v Event, err error) {
 		v = d
 	default:
 		err = fmt.Errorf("Unsupport poll_type: %v", poll_type)
+		util.DEBUG.Log(string(data))
 	}
 	return
 }
@@ -29,28 +32,7 @@ func (data RawEvent) ParseEvent(poll_type string) (v Event, err error) {
 type RawEvent json.RawMessage
 type Event interface{}
 
-/*
- "poll_type": "message"
- {
- 	"msg_id": 31607,
- 	"from_uin": 3255435951,
- 	"to_uin": 2735284921,
- 	"msg_id2": 459162,
- 	"msg_type": 9,
- 	"reply_ip": 176756886,
- 	"time": 1375794494,
- 	"content": [
-		["font",
-		{
-			"size": 10,
-			"color": "000000",
-			"style": [0, 0, 0],
-			"name": "\u5FAE\u8F6F\u96C5\u9ED1"
-		}],
-		"\u53E5\u53E5\u53E5 "
-	]
- }
-*/
+// "poll_type": "message"
 type EventMessage struct {
 	FromUin Uin     `json:"from_uin"`
 	ToUin   Uin     `json:"to_uin"`
@@ -62,31 +44,7 @@ type EventMessage struct {
 	Content Content `json:"content"`
 }
 
-/*
- "poll_type": "group_message"
- {
- 	"msg_id": 12418,
- 	"from_uin": 221664830,
- 	"to_uin": 2735284921,
- 	"msg_id2": 7256,
- 	"msg_type": 43,
- 	"reply_ip": 176496859,
- 	"group_code": 738328699,
- 	"send_uin": 3255435951,
- 	"seq": 114,
- 	"time": 1375798045,
- 	"info_seq": 165640562,
- 	"content": [
- 		["font",{
- 			"size": 10,
- 			"color": "000000",
- 			"style": [0, 0, 0],
- 			"name": "\u5FAE\u8F6F\u96C5\u9ED1"
- 		}],
- 		"123123 "
- 	]
- }
-*/
+// "poll_type": "group_message"
 type EventGroupMessage struct {
 	FromUin   Uin     `json:"from_uin"`
 	ToUin     Uin     `json:"to_uin"`
@@ -102,14 +60,7 @@ type EventGroupMessage struct {
 	Content   Content `json:"content"`
 }
 
-/*
- "poll_type": "buddies_status_change"
- {
- 	"uin": 3255435951,
- 	"status": "online",
- 	"client_type": 1
- }
-*/
+// "poll_type": "buddies_status_change"
 type EventBuddiesStatusChange struct {
 	Uin        Uin    `json:"uin"`
 	Status     uint32 `json:"status"`

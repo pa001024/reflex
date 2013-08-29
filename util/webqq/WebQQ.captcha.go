@@ -28,8 +28,9 @@ func (this *WebQQ) ptlogin_getimage(vc_type string) (code string, err error) {
 	}
 	io.Copy(rw, res.Body)
 	rw.Seek(0, 0)
-	asc.ShowFile(os.Stdout, rw, asc.Console{6, 14, 120}, true, false) // TODO: 缺乏配置
+	asc.ShowFile(os.Stdout, rw, asc.Console{6, 14, 120}, false, false) // TODO: 缺乏配置
 	rw.Close()
+	fmt.Println()
 	fmt.Print("Enter Verify Code: ")
 	fmt.Scanf("%s", &code)
 	return

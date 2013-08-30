@@ -148,7 +148,7 @@ func (this *WebQQ) get_recent_list2() (v *ResultRecentList, err error) {
 	return
 }
 
-// 当前聊天列表result结构 {"retcode":0,"result":[{"uin":3255435951,"type":0},{"uin":221664830,"type":1}]}
+// 当前聊天列表result结构
 type ResultRecentList struct {
 	Code   int `json:"retcode"`
 	Result []struct {

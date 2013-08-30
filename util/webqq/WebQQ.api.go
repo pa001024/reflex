@@ -161,15 +161,26 @@ type ClientType uint32
 
 // 客户端类型 (TODO:待补完)
 const (
-	ClientTypePC    ClientType = 1
-	ClientTypeWebQQ            = 41
+	ClientTypePC      ClientType = 1
+	ClientTypePC1                = 2
+	ClientTypePC2                = 3
+	ClientTypePC3                = 4
+	ClientTypePC4                = 5
+	ClientTypePC5                = 6
+	ClientTypePC6                = 10
+	ClientTypeMobile             = 21
+	ClientTypeMobile1            = 22
+	ClientTypeMobile2            = 23
+	ClientTypeMobile3            = 24
+	ClientTypeWebQQ              = 41
+	ClientTypePad                = 42
 )
 
 // 群成员在线信息
 type MemberStat struct {
-	Uin        Uin    `json:"uin"`
-	ClientType uint32 `json:"client_type"`
-	Stat       uint32 `json:"stat"`
+	Uin        Uin        `json:"uin"`
+	ClientType ClientType `json:"client_type"`
+	Stat       uint32     `json:"stat"`
 }
 
 // 群成员信息

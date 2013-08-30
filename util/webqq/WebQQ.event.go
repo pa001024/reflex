@@ -21,6 +21,16 @@ func (data RawEvent) ParseEvent(poll_type string) (v Event, err error) {
 		v = &EventBuddiesStatusChange{}
 	case "group_web_message":
 		v = &EventGroupWebMessage{}
+	case "input_notify":
+		v = &EventInputNotify{}
+	case "filesrv_transfer":
+		v = &EventFileSrvTransfer{}
+	case "file_message":
+		v = &EventFileMessage{}
+	case "av_refuse":
+		v = &EventAvRefuse{}
+	case "shake_message":
+		v = &EventShakeMessage{}
 	default:
 		err = fmt.Errorf("Unsupport poll_type: %v", poll_type)
 		return
@@ -137,4 +147,28 @@ type EventFileMessage struct {
 	SessionId uint32 `json:"session_id"`
 	Time      uint32 `json:"time"`
 	InetIp    uint32 `json:"inet_ip"`
+}
+
+// "poll_type": "av_refuse"
+type EventAvRefuse struct {
+	FromUin   Uin    `json:"from_uin"`
+	ToUin     Uin    `json:"to_uin"`
+	MsgId     uint32 `json:"msg_id"`
+	MsgId2    uint32 `json:"msg_id2"`
+	MsgType   uint32 `json:"msg_type"`
+	ReplyIp   uint32 `json:"reply_ip"`
+	Type      uint32 `json:"type"`
+	SessionId uint32 `json:"session_id"`
+	Time      uint32 `json:"time"`
+	Longconn  string `json:"longconn"`
+}
+
+// "poll_type": "shake_message"
+type EventShakeMessage struct {
+	FromUin Uin    `json:"from_uin"`
+	ToUin   Uin    `json:"to_uin"`
+	MsgId   uint32 `json:"msg_id"`
+	MsgId2  uint32 `json:"msg_id2"`
+	MsgType uint32 `json:"msg_type"`
+	ReplyIp uint32 `json:"reply_ip"`
 }

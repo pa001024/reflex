@@ -11,10 +11,12 @@ import (
 
 // 默认四个日志级别
 var (
-	DEBUG = NewLogger(os.Stderr, false, "[DEBUG] ")
-	WARN  = NewLogger(os.Stderr, true, "[WARN] ")
-	ERROR = NewLogger(os.Stderr, true, "[ERROR] ")
-	INFO  = NewLogger(os.Stdout, true, "[INFO] ")
+	TRACE    = NewLogger(os.Stderr, false, "[TRACE] ")
+	DEBUG    = NewLogger(os.Stderr, false, "[DEBUG] ")
+	WARN     = NewLogger(os.Stderr, true, "[WARN] ")
+	ERROR    = NewLogger(os.Stderr, true, "[ERROR] ")
+	INFO     = NewLogger(os.Stdout, true, "[INFO] ")
+	CRITICAL = NewLogger(os.Stdout, true, "[CRITICAL] ")
 )
 
 // 调试时日志 输出行号[调用深度还真头疼啊]

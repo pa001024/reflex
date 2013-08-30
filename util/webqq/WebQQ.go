@@ -25,22 +25,27 @@ type WebQQ struct {
 	ptwebQQ    string
 	login_sig  string
 	sig_url    string
+	cface_key  string
+	cface_sig  string
+
+	// 公有
+	Friends     FriendJar
+	Groups      GroupJar
+	CustomFaces CustomFaceJar
+	OfflinePics OfflinePicJar
 }
 
-// 用户ID
-type Uin uint64
+type Uin uint64     // 用户ID
+type GCode uint64   // 群信息ID 伪群号 相当于uin
+type Account uint64 // 真实QQ号
+type GroupId uint64 // 真实群号
+type DiscuId uint64 // 讨论组号
 
-func (u Uin) String() string { return fmt.Sprint(uint64(u)) }
-
-// 群信息ID
-type GCode uint64
-
-func (u GCode) String() string { return fmt.Sprint(uint64(u)) }
-
-// 真实QQ号
-type Account uint64
-
+func (u Uin) String() string     { return fmt.Sprint(uint64(u)) }
+func (u GCode) String() string   { return fmt.Sprint(uint64(u)) }
 func (u Account) String() string { return fmt.Sprint(uint64(u)) }
+func (u GroupId) String() string { return fmt.Sprint(uint64(u)) }
+func (u DiscuId) String() string { return fmt.Sprint(uint64(u)) }
 
 // 创建WebQQ
 func NewWebQQ(uid Account, pwd string) (this *WebQQ) {
@@ -58,11 +63,7 @@ func NewWebQQ(uid Account, pwd string) (this *WebQQ) {
 
 // 登录 [2013.8.27]
 func (this *WebQQ) Login() (err error) {
-	defer func() {
-		if e := recover(); e != nil {
-			err = fmt.Errorf("%s", e)
-		}
-	}()
+	defer util.Catch(&err)
 	// [1] login_sig
 	this.login_sig, err = this.ptlogin_login_sig()
 	util.Try(err)
@@ -94,13 +95,21 @@ check:
 	return
 }
 
-var (
-	msg_id uint32 = (2000 + uint32(rand.Int31n(2999))) * 1000
-)
+var msg_id uint32 = (2000 + uint32(rand.Int31n(2999))) * 1000
 
 // 给Uin发送消息
-func (this *WebQQ) SendTo(to Uin, m ContentM) (err error) {
+func (this *WebQQ) SendSingle(to Uin, m ContentModel) (err error) {
 	r, err := this.send_buddy_msg2(to, m, msg_id)
+	msg_id++
+	if r != nil && err == nil {
+		err = fmt.Errorf("[SendTo] return %v", r.Code)
+	}
+	return
+}
+
+// 给Uin发送消息
+func (this *WebQQ) SendQun(to Uin, m ContentModel) (err error) {
+	r, err := this.send_qun_msg2(to, m, msg_id)
 	msg_id++
 	if r != nil && err == nil {
 		err = fmt.Errorf("[SendTo] return %v", r.Code)
@@ -116,7 +125,7 @@ func (this *WebQQ) Start() <-chan Event {
 		for {
 			r, err := this.poll2()
 			if err != nil {
-				util.WARN.Logf("[poll] throw error: %v", err)
+				util.DEBUG.Logf("[poll] throw error: %v", err)
 			} else if r != nil {
 				in <- r
 			}

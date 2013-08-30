@@ -32,6 +32,6 @@ func (this *WebQQ) ptlogin_getimage(vc_type string) (code string, err error) {
 	rw.Close()
 	fmt.Println()
 	fmt.Print("Enter Verify Code: ")
-	fmt.Scanf("%s", &code)
+	fmt.Scanf("%s\n", &code)
 	return
 }

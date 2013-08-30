@@ -158,12 +158,12 @@ type ResultRecentList struct {
 }
 
 // 发送私聊消息
-func (this *WebQQ) send_buddy_msg2(to Uin, content ContentM, msg_id uint32) (v *Result, err error) {
+func (this *WebQQ) send_buddy_msg2(to Uin, content ContentModel, msg_id uint32) (v *Result, err error) {
 	util.DEBUG.Logf("send_buddy_msg2(to = %s , content = %v , msg_id = %v)", to, content, msg_id)
 	data, err := this.postChannel("send_buddy_msg2",
 		"to", to,
 		"face", "552", // 这是啥?
-		"content", content.Encode().EncodeString(),
+		"content", content.Encode(this).EncodeString(),
 		"msg_id", msg_id,
 	)
 	if err == nil {
@@ -174,11 +174,11 @@ func (this *WebQQ) send_buddy_msg2(to Uin, content ContentM, msg_id uint32) (v *
 }
 
 // 发送群消息
-func (this *WebQQ) send_qun_msg2(group_uin Uin, content ContentM, msg_id uint32) (v *Result, err error) {
+func (this *WebQQ) send_qun_msg2(group_uin Uin, content ContentModel, msg_id uint32) (v *Result, err error) {
 	util.DEBUG.Logf("send_qun_msg2(group_uin = %s , content = %v , msg_id = %v)", group_uin, content, msg_id)
 	data, err := this.postChannel("send_qun_msg2",
 		"group_uin", group_uin,
-		"content", content.Encode().EncodeString(),
+		"content", content.Encode(this).EncodeString(),
 		"msg_id", msg_id,
 	)
 	if err == nil {
@@ -186,4 +186,147 @@ func (this *WebQQ) send_qun_msg2(group_uin Uin, content ContentM, msg_id uint32)
 		err = json.Unmarshal(data, v)
 	}
 	return
+}
+
+// 获取发送群聊图片Sig
+func (this *WebQQ) get_gface_sig2() (v *ResultGfaceSig, err error) {
+	data, err := this.postChannel("get_gface_sig2")
+	if err == nil {
+		v = &ResultGfaceSig{}
+		err = json.Unmarshal(data, v)
+	}
+	return
+}
+
+// 发送群聊图片Sig result结构
+type ResultGfaceSig struct {
+	Code   int `json:"retcode"`
+	Result struct {
+		Reply    uint32 `json:"reply"`
+		GfaceKey string `json:"gface_key"`
+		GfaceSig string `json:"gface_sig"`
+	} `json:"result"`
+}
+
+// 发送离线图片
+func (this *WebQQ) apply_offline_pic_dl2(file_path string) (v *ResultOfflinePicDl, err error) {
+	data, err := this.channel("apply_offline_pic_dl2",
+		"f_uin", this.Uin,
+		"file_path", file_path,
+	)
+	if err == nil {
+		v = &ResultOfflinePicDl{}
+		err = json.Unmarshal(data, v)
+	}
+	return
+}
+
+// 发送离线图片 result结构
+type ResultOfflinePicDl struct {
+	Code   int `json:"retcode"`
+	Result struct {
+		Success  uint32 `json:"success"`
+		url      string `json:"url"`
+		FilePath string `json:"file_path"`
+	} `json:"result"`
+}
+
+// 创建讨论组
+func (this *WebQQ) create_discu(file_path string) (v *ResultCreateDiscu, err error) {
+	data, err := this.channel("create_discu") // TODO
+
+	if err == nil {
+		v = &ResultCreateDiscu{}
+		err = json.Unmarshal(data, v)
+	}
+	return
+}
+
+// 创建讨论组 result结构
+type ResultCreateDiscu struct {
+	Code   int `json:"retcode"`
+	Result struct {
+		Result  uint32  `json:"result"`
+		DiscuId DiscuId `json:"did"`
+	} `json:"result"`
+}
+
+// 获取讨论组信息
+func (this *WebQQ) get_discu_info(did DiscuId) (v *ResultDiscuInfo, err error) {
+	data, err := this.channel("get_discu_info",
+		"did", did,
+		"vfwebqq", this.vfwebqq,
+	)
+	if err == nil {
+		v = &ResultDiscuInfo{}
+		err = json.Unmarshal(data, v)
+	}
+	return
+}
+
+// 获取讨论组信息 result结构
+type ResultDiscuInfo struct {
+	Code   int `json:"retcode"`
+	Result struct {
+		Info struct {
+			DiscuId    DiscuId `json:"did"`
+			DiscuOwner Uin     `json:"discu_owner"`
+			DiscuName  string  `json:"discu_name"`
+			InfoSeq    string  `json:"info_seq"` // 信息序列号
+			MemberList []struct {
+				Uin     Uin     `json:"mem_uin"`
+				Account Account `json:"ruin"`
+			} `json:"mem_list"`
+		} `json:"info"`
+		MemberStatus []MemberStat `json:"mem_status"`
+		MemberInfo   struct {
+			Uin  Uin    `json:"uin"`
+			Nick string `json:"nick"`
+		} `json:"mem_info"`
+	} `json:"result"`
+}
+
+// 获取讨论组信息
+func (this *WebQQ) modify_discu_info(did DiscuId, discu_name string) (v *Result, err error) {
+	data, err := this.postChannel("modify_discu_info",
+		"did", did,
+		"discu_name", discu_name,
+		"dtype", 1,
+		"vfwebqq", this.vfwebqq,
+	)
+	if err == nil {
+		v = &Result{}
+		err = json.Unmarshal(data, v)
+	}
+	return
+}
+
+// 获取临时会话Sig
+func (this *WebQQ) get_c2cmsg_sig2(to_uin Uin) (v *ResultC2CMsgSig, err error) {
+	data, err := this.channel("get_c2cmsg_sig2",
+		"id", this.Uin,
+		"to_uin", to_uin,
+		"service_type", 1,
+	)
+	if err == nil {
+		v = &ResultC2CMsgSig{}
+		err = json.Unmarshal(data, v)
+	}
+	return
+}
+
+// 获取临时会话Sig result结构
+type ResultC2CMsgSig struct {
+	Code   int `json:"retcode"`
+	Result struct {
+		Type  uint32 `json:"type"`
+		Value string `json:"value"`
+		Flags struct {
+			Text  uint8 `json:"text"`
+			Pic   uint8 `json:"pic"`
+			File  uint8 `json:"file"`
+			Audio uint8 `json:"audio"`
+			Video uint8 `json:"video"`
+		} `json:"flags"`
+	} `json:"result"`
 }

@@ -53,12 +53,30 @@ func (this *WebQQ) postApi(api string, args ...interface{}) (body []byte, err er
 	return
 }
 
+// 通用API接口(POST2)
+func (this *WebQQ) rawPostApi(api string, args ...interface{}) (body []byte, err error) {
+	val := url.Values{
+		"vfwebqq": {this.vfwebqq},
+	}
+	l := len(args) - 1
+	for i := 0; i < l; i += 2 {
+		val.Add(args[i].(string), fmt.Sprint(args[i+1]))
+	}
+	res, err := this.getWithReferer(_API_URL+api+"?"+val.Encode(), _API_REFERER)
+	if err != nil {
+		return
+	}
+	body, err = ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	return
+}
+
 // 通用 Result结构
 type Result struct {
 	Code int `json:"retcode"`
 }
 
-// 获取群成员信息
+// 获取群成员在线信息
 func (this *WebQQ) get_group_member_stat2(gcode GCode) (v *ResultGroupMemberStat, err error) {
 	util.DEBUG.Logf("get_group_member_stat2(gcode = %v)", gcode)
 	data, err := this.api("get_group_member_stat2", "gcode", gcode)
@@ -69,25 +87,16 @@ func (this *WebQQ) get_group_member_stat2(gcode GCode) (v *ResultGroupMemberStat
 	return
 }
 
-/*
- 群成员信息 result结构
- ---------------------
-
- {"retcode":0,"result":{"stats":[{"client_type":41,"uin":2735284921,"stat":10}],"gcode":738328699}}
-*/
+// 群成员在线信息 result结构
 type ResultGroupMemberStat struct {
 	Code   int `json:"retcode"`
 	Result struct {
-		Stats []Stat
+		Stats []MemberStat
 	} `json:"result"`
 }
 
-/*
- 获取自己的群名片
- ----------------
-
- {"retcode":10001} // 没有
-*/
+// 获取自己的群名片
+// {"retcode":10001} // 没有
 func (this *WebQQ) get_self_business_card2(gcode string) (v *ResultSelfBusinessCard, err error) {
 	util.DEBUG.Logf("get_self_business_card2(gcode = %v)", gcode)
 	data, err := this.api("get_self_business_card2", "gcode", gcode)
@@ -98,6 +107,7 @@ func (this *WebQQ) get_self_business_card2(gcode string) (v *ResultSelfBusinessC
 	return
 }
 
+// 自己群名片 result结构
 type ResultSelfBusinessCard struct {
 	Code   int `json:"retcode"`
 	Result struct {
@@ -121,12 +131,7 @@ func (this *WebQQ) get_group_info(gcode, retainKey string) (v *ResultGroupInfo, 
 	return
 }
 
-/*
- 群信息 result结构
- -----------------
-
- {"retcode":0,"result":[{"memo":"","gcode":738328699}]}
-*/
+// 群信息 result结构
 type ResultGroupInfo struct {
 	Code   int `json:"retcode"`
 	Result []struct {
@@ -146,16 +151,11 @@ func (this *WebQQ) get_group_info_ext2(gcode string) (v *ResultGroupInfoExt, err
 	return
 }
 
-/*
- 群详细信息 result结构
- ---------------------
-
- {"retcode":0,"result":{"stats":[{...}],"minfo":[{...}],"ginfo":{...},"cards":[{...}],"vipinfo":[{...}]}}
-*/
+// 群详细信息 result结构
 type ResultGroupInfoExt struct {
 	Code   int `json:"retcode"`
 	Result struct {
-		Stats       []Stat       `json:"stats"`
+		Stats       []MemberStat `json:"stats"`
 		MemberInfos []MemberInfo `json:"minfo"`
 		GroupInfo   GroupInfo    `json:"ginfo"`
 		Cards       []Card       `json:"cards"`
@@ -163,30 +163,22 @@ type ResultGroupInfoExt struct {
 	} `json:"result"`
 }
 
+type ClientType uint32
+
 // 客户端类型 (TODO:待补完)
 const (
-	ClientTypePC    = 1
-	ClientTypeWebQQ = 41
+	ClientTypePC    ClientType = 1
+	ClientTypeWebQQ            = 41
 )
 
-/*
- 群成员在线信息
- --------------
-
- {"client_type": 1,"uin": 3255435951,"stat": 10}
-*/
-type Stat struct {
+// 群成员在线信息
+type MemberStat struct {
 	Uin        Uin    `json:"uin"`
 	ClientType uint32 `json:"client_type"`
 	Stat       uint32 `json:"stat"`
 }
 
-/*
- 群成员信息
- ----------
-
- {"nick": "菊菊菊菊菊菊","province": "省","gender": "male","uin": 2735284921,"country": "国家","city": "城市"}
-*/
+// 群成员信息
 type MemberInfo struct {
 	Nick     string `json:"nick"`
 	Province string `json:"province"`
@@ -196,26 +188,7 @@ type MemberInfo struct {
 	City     string `json:"city"`
 }
 
-/*
- 群详细信息
- ----------
-
- {
- 	"face": 0,
- 	"memo": "",
- 	"class": 10021,
- 	"fingermemo": "",
- 	"code": 738328699,
- 	"createtime": 1311148090,
- 	"flag": 16777217,
- 	"level": 3,
- 	"name": "群名",
- 	"gid": 221664830,
- 	"owner": 3255435951,
- 	"members": [{...}],
- 	"option": 2
- }
-*/
+// 群详细信息
 type GroupInfo struct {
 	Face       uint32 `json:"face"`
 	Class      uint32 `json:"class"`
@@ -231,49 +204,26 @@ type GroupInfo struct {
 	Members    string `json:"members"`
 }
 
-/*
- 群成员
- ------
-
- 0 = 普通成员
- 84 = 群主 01010100
-
- {"muin": 3255435951,"mflag": 84}
-*/
+// 群成员 0 = 普通成员 84 = 群主 01010100
 type Member struct {
 	Uin  Uin    `json:"muin"`
 	Flag uint32 `json:"mflag"`
 }
 
-/*
- 群名片
- ------
-
- {"muin": 2735284921,"card": "花花花花"}
-*/
+// 群名片
 type Card struct {
 	Uin  Uin    `json:"muin"`
 	Card string `json:"card"`
 }
 
-/*
- 会员信息
- --------
-
- {"vip_level":5,"u":3255435951,"is_vip":1}
-*/
+// 会员信息
 type VipInfo struct {
 	VipLevel string `json:"vip_level"`
 	Uin      Uin    `json:"u"`
 	IsVip    string `json:"is_vip"`
 }
 
-/*
- 获取显示ID
- ----------
-
- type: 好友=1 群=4
-*/
+// 获取显示ID type: 好友=1 群=4
 func (this *WebQQ) get_friend_uin2(tuin Uin, type_ string) (v *ResultFriendUin, err error) {
 	util.DEBUG.Logf("get_friend_uin2(tuin = %v, type = %v)", tuin, type_)
 	data, err := this.api("get_friend_uin2", "tuin", tuin, "type", type_)
@@ -284,12 +234,7 @@ func (this *WebQQ) get_friend_uin2(tuin Uin, type_ string) (v *ResultFriendUin, 
 	return
 }
 
-/*
- 获取显示ID result结构
- ---------------------
-
- {"retcode":0,"result":{"uiuin":"","account":165640562,"uin":738328699}}
-*/
+// 获取显示ID result结构
 type ResultFriendUin struct {
 	Code   int `json:"retcode"`
 	Result struct {
@@ -310,38 +255,7 @@ func (this *WebQQ) get_friend_info2(tuin string) (v *ResultFriendInfo, err error
 	return
 }
 
-/*
- 获取好友信息 result结构
- -----------------------
-
- {
-	"retcode": 0,
-	"result": {
-		"uin": 2735284921,
-		"face": 552,
-		"allow": 0,
-		"constel": 9,
-		"blood": 0,
-		"stat": 10,
-		"vip_info": 0,
-		"shengxiao": 4,
-		"client_type": 41,
-		"birthday": {...},
-		"occupation": "",
-		"phone": "",
-		"college": "",
-		"homepage": "",
-		"country": "中国",
-		"city": "舟山",
-		"personal": "",
-		"nick": "菊菊菊菊菊菊",
-		"email": "",
-		"province": "浙江",
-		"gender": "male",
-		"mobile": ""
-	}
- }
-*/
+// 获取好友信息 result结构
 type ResultFriendInfo struct {
 	Code   int        `json:"retcode"`
 	Result FriendInfo `json:"result"`
@@ -373,24 +287,14 @@ type FriendInfo struct {
 	Mobile     string   `json:"mobile"`
 }
 
-/*
- 生日
- ----
-
- {"month": 10,"year": 1999,"day": 1}
-*/
+// 生日
 type Birthday struct {
 	Month uint32 `json:"month"`
 	Year  uint32 `json:"year"`
 	Day   uint32 `json:"day"`
 }
 
-/*
- 获取好友验证类型
- ----------------
-
- ?retainKey=allow
-*/
+// 获取好友验证类型
 func (this *WebQQ) get_allow_info2(tuin string) (v *ResultAllowInfo, err error) {
 	data, err := this.api("get_allow_info2", "tuin", tuin, "retainKey", "allow")
 	if err == nil {
@@ -400,12 +304,7 @@ func (this *WebQQ) get_allow_info2(tuin string) (v *ResultAllowInfo, err error) 
 	return
 }
 
-/*
- 好友验证类型 result结构
- -----------------------
-
- {"retcode":0,"result":{"allow":1}}
-*/
+// 好友验证类型 result结构
 type ResultAllowInfo struct {
 	Code   int `json:"retcode"`
 	Result struct {
@@ -423,13 +322,8 @@ func (this *WebQQ) get_single_long_nick2(tuin string) (v *ResultSingleLongNick, 
 	return
 }
 
-/*
- 获取签名 result结构
- -------------------
-
- {"retcode":100000} // 没有签名
- {"retcode":0,"result":[{"uin":3255435951,"lnick":"AFK"}]}
-*/
+// 获取签名 result结构
+// {"retcode":0,"result":[{"uin":3255435951,"lnick":"AFK"}]}
 type ResultSingleLongNick struct {
 	Code   int `json:"retcode"`
 	Result []struct {
@@ -448,13 +342,8 @@ func (this *WebQQ) get_qq_level2(tuin string) (v *ResultQQLevel, err error) {
 	return
 }
 
-/*
- 获取等级 result结构
- -------------------
-
- {"retcode":100000} // 没有签名
- {"retcode":0,"result":{"level":39,"days":1728,"hours":21201,"remainDays":32,"tuin":3255435951}}
-*/
+// 获取等级 result结构
+// {"retcode":0,"result":{"level":39,"days":1728,"hours":21201,"remainDays":32,"tuin":3255435951}}
 type ResultQQLevel struct {
 	Code   int `json:"retcode"`
 	Result struct {
@@ -466,19 +355,17 @@ type ResultQQLevel struct {
 	} `json:"result"`
 }
 
-// TODO: 获取不知什么玩意 先不写
+// 获取讨论组列表
 func (this *WebQQ) get_discus_list() (v *ResultDiscusList, err error) {
-	util.WARN.Err("calling an todo function get_discus_list()")
-	// this.api("get_discus_list")
+	data, err := this.api("get_discus_list")
+	if err == nil {
+		v = &ResultDiscusList{}
+		err = json.Unmarshal(data, v)
+	}
 	return
 }
 
-/*
- 上面这不知什么玩意的 result结构
- -------------------------------
-
- {"retcode":0,"result":{"dnamelist":[]}}
-*/
+// 讨论组列表 result结构
 type ResultDiscusList struct {
 	Code   int `json:"retcode"`
 	Result struct {
@@ -486,14 +373,8 @@ type ResultDiscusList struct {
 	} `json:"result"`
 }
 
-/*
- 设置签名(POST)
- --------------
-
- r = {"nlk":"签名","vfwebqq":"..."}
- RESULT:
- {"retcode":0,"result":{"result":0}}
-*/
+// 设置签名(POST)
+// r = {"nlk":"签名","vfwebqq":"..."}
 func (this *WebQQ) set_long_nick2(nlk string) (v *Result, err error) {
 	data, err := this.postApi("set_long_nick2", "nlk", nlk)
 	if err == nil {
@@ -503,12 +384,8 @@ func (this *WebQQ) set_long_nick2(nlk string) (v *Result, err error) {
 	return
 }
 
-/*
- 获取好友列表(POST)
- ------------------
-
- r = {"h":"hello","hash":"ABF6A3FE","vfwebqq":"..."}
-*/
+// 获取好友列表(POST)
+// r = {"h":"hello","hash":"ABF6A3FE","vfwebqq":"..."}
 func (this *WebQQ) get_user_friends2() (v *ResultUserFrientds, err error) {
 	data, err := this.postApi("get_user_friends2",
 		"h", "hello",
@@ -521,30 +398,7 @@ func (this *WebQQ) get_user_friends2() (v *ResultUserFrientds, err error) {
 	return
 }
 
-/*
- 获取好友列表 result结构
- -----------------------
-
- {
- 	"retcode": 0,
- 	"result": {
- 		"friends": [{...}],
- 		"marknames": [],
- 		"categories": [],
- 		"vipinfo": [{
- 			"vip_level": 5,
- 			"u": 3255435951,
- 			"is_vip": 1
- 		}],
- 		"info": [{
- 			"face": 564,
- 			"flag": 16777798,
- 			"nick": "XpA.IDEA",
- 			"uin": 3255435951
- 		}]
- 	}
- }
-*/
+// 获取好友列表 result结构
 type ResultUserFrientds struct {
 	Code   int `json:"retcode"`
 	Result struct {
@@ -556,30 +410,18 @@ type ResultUserFrientds struct {
 	} `json:"result"`
 }
 
-/*
- 好友
- ----
-
- {"flag":0,"uin":3255435951,"categories":0}
-*/
+// 好友信息子结构
 type Friend struct {
+	Uin        Uin   `json:"uin"`
+	Flag       int32 `json:"flag"`
+	Categories int32 `json:"categories"`
 }
 
-/*
- 备注
- ----
-
- 未知
-*/
+// 好友备注子结构
 type Markname struct {
 }
 
-/*
- 分类
- ----
-
- 未知
-*/
+// 好友分类子结构
 type Categorie struct {
 }
 
@@ -591,13 +433,8 @@ type Info struct {
 	Uin  string `json:"uin"`
 }
 
-/*
- 修改群名片(POST)
- ----------------
-
- r = {"gcode":738328699,"markname":"测试","vfwebqq":"..."}
- {"retcode":6}
-*/
+// 修改群名片(POST)
+// r = {"gcode":738328699,"markname":"测试","vfwebqq":"..."}
 func (this *WebQQ) update_group_info2(gcode GCode, markname string) (v *Result, err error) {
 	data, err := this.postApi("update_group_info2", "gcode", gcode, "markname", markname)
 	if err == nil {
@@ -607,13 +444,7 @@ func (this *WebQQ) update_group_info2(gcode GCode, markname string) (v *Result, 
 	return
 }
 
-/*
- 退出群(POST)
- ----------------
-
- r = {"gcode":738328699,"vfwebqq":"..."}
- {"retcode":10001} // 失败
-*/
+// 退出群(POST)
 func (this *WebQQ) quit_group2(gcode GCode) (v *Result, err error) {
 	data, err := this.postApi("quit_group2", "gcode", gcode)
 	if err == nil {
@@ -623,12 +454,7 @@ func (this *WebQQ) quit_group2(gcode GCode) (v *Result, err error) {
 	return
 }
 
-/*
- 获取群列表(POST)
- ----------------
-
- r = {"vfwebqq":"..."}
-*/
+// 获取群列表(POST)
 func (this *WebQQ) get_group_name_list_mask2() (v *Result, err error) {
 	data, err := this.postApi("get_group_name_list_mask2")
 	if err == nil {
@@ -638,19 +464,7 @@ func (this *WebQQ) get_group_name_list_mask2() (v *Result, err error) {
 	return
 }
 
-/*
- 群列表 result结构
- -----------------
-
- {
- 	"retcode": 0,
- 	"result": {
- 		"gmasklist": [],
- 		"gnamelist": [{...}],
- 		"gmarklist": []
- 	}
- }
-*/
+// 群列表 result结构
 type ResultGroupNameListMask struct {
 	Code   int `json:"retcode"`
 	Result struct {
@@ -660,12 +474,8 @@ type ResultGroupNameListMask struct {
 	} `json:"result"`
 }
 
-/*
- 群名
- ----
-
- {"flag": 16777217,"name": "群名","gid": 221664830,"code": 738328699}
-*/
+// 群名
+// {"flag": 16777217,"name": "群名","gid": 221664830,"code": 738328699}
 type GroupName struct {
 	Gid  Uin    `json:"gid"`
 	Code GCode  `json:"code"`
@@ -673,23 +483,65 @@ type GroupName struct {
 	Name string `json:"name"`
 }
 
-/*
- 群备注
- ------
-
- 未知
-*/
+// 群备注
 type GroupMark struct {
 }
 
-/*
- 查找好友(需要验证码)
- --------------------
-
- {"retcode":0,"result":{"face":147,"birthday":{"month":4,"year":1996,"day":9},"occupation":"待业/无业/失业","phone":"","allow":4,"college":"","constel":3,"blood":0,"stat":20,"homepage":"","country":"中国","city":"温州","uiuin":"","personal":"爱上你，不是因为你给了我需要的东西，而是因为你给了我从未有过的感觉。","nick":"小さくて暗い","shengxiao":1,"email":"","token":"e5c67a587252c899fac04fce508372b0e650b1622faa7230","province":"浙江","account":1159549778,"gender":"male","tuin":2265896498,"mobile":"-"}}
-*/
+// 查找好友(需要验证码)
+// {"retcode":0,"result":{"face":147,"birthday":{"month":4,"year":1996,"day":9},"occupation":"待业/无业/失业","phone":"","allow":4,"college":"","constel":3,"blood":0,"stat":20,"homepage":"","country":"中国","city":"温州","uiuin":"","personal":"爱上你，不是因为你给了我需要的东西，而是因为你给了我从未有过的感觉。","nick":"小さくて暗い","shengxiao":1,"email":"","token":"e5c67a587252c899fac04fce508372b0e650b1622faa7230","province":"浙江","account":1159549778,"gender":"male","tuin":2265896498,"mobile":"-"}}
 func (this *WebQQ) search_qq_by_uin2(tuin, verifysession, code string) (v *Result, err error) {
 	data, err := this.api("search_qq_by_uin2", "tuin", tuin, "verifysession", verifysession, "code", code)
+	if err == nil {
+		v = &Result{}
+		err = json.Unmarshal(data, v)
+	}
+	return
+}
+
+// [POST] 批量获取VIP信息
+func (this *WebQQ) batch_get_vipinfo(ul []Uin) (v *ResultBatchGetVipInfo, err error) {
+	b, _ := json.Marshal(ul)
+	data, err := this.rawPostApi("batch_get_vipinfo", "ul", string(b))
+	if err == nil {
+		v = &ResultBatchGetVipInfo{}
+		err = json.Unmarshal(data, v)
+	}
+	return
+}
+
+// 获取VIP信息 result结构
+type ResultBatchGetVipInfo struct {
+	Code   int `json:"retcode"`
+	Result struct {
+		VipInfo []VipInfo `json:"vipinfo"`
+	} `json:"result"`
+}
+
+// 获取陌生人信息
+func (this *WebQQ) get_stranger_info2(tuin Uin) (v *ResultStrangerInfo, err error) {
+	data, err := this.api("get_stranger_info2", "tuin", tuin, "gid", "0", "code", "")
+	if err == nil {
+		v = &ResultStrangerInfo{}
+		err = json.Unmarshal(data, v)
+	}
+	return
+}
+
+// 获取陌生人信息 result结构
+type ResultStrangerInfo struct {
+	Code   int        `json:"retcode"`
+	Result FriendInfo `json:"result"`
+}
+
+// 添加好友(验证)
+func (this *WebQQ) add_need_verify2(account, myallow, groupid, msg, token string) (v *Result, err error) {
+	data, err := this.api("add_need_verify2",
+		"account", account,
+		"myallow", myallow,
+		"groupid", groupid,
+		"msg", msg,
+		"token", token,
+	)
 	if err == nil {
 		v = &Result{}
 		err = json.Unmarshal(data, v)

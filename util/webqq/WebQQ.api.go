@@ -114,13 +114,8 @@ type ResultSelfBusinessCard struct {
 	} `json:"result"`
 }
 
-/*
- 获取群信息
- ----------
-
- gcode:[738328699]
- retainKey:memo,gcode
-*/
+// 获取群信息
+// gcode:[738328699] retainKey:memo,gcode
 func (this *WebQQ) get_group_info(gcode, retainKey string) (v *ResultGroupInfo, err error) {
 	util.DEBUG.Logf("get_group_info(gcode = %v, retainKey = %v)", gcode, retainKey)
 	data, err := this.api("get_group_info", "gcode", gcode, "retainKey", retainKey)

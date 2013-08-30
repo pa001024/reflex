@@ -59,7 +59,9 @@ func Throw(msg string) {
 func Catch(err ...*error) {
 	if e := recover(); e != nil {
 		es := fmt.Sprint(e)
-		*err[0], _ = e.(error)
+		if err != nil && len(err) > 0 {
+			*err[0], _ = e.(error)
+		}
 		ERROR.Log(es)
 	}
 }

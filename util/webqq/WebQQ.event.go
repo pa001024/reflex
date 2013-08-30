@@ -31,6 +31,12 @@ func (data RawEvent) ParseEvent(poll_type string) (v Event, err error) {
 		v = &EventAvRefuse{}
 	case "shake_message":
 		v = &EventShakeMessage{}
+	case "push_offfile":
+		v = &EventPushOffFile{}
+	case "system_message":
+		v = &EventSystemMessage{}
+	case "sys_g_msg":
+		v = &EventSysGroupMessage{}
 	default:
 		err = fmt.Errorf("Unsupport poll_type: %v", poll_type)
 		return
@@ -171,4 +177,66 @@ type EventShakeMessage struct {
 	MsgId2  uint32 `json:"msg_id2"`
 	MsgType uint32 `json:"msg_type"`
 	ReplyIp uint32 `json:"reply_ip"`
+}
+
+// "poll_type": "push_offfile"
+type EventPushOffFile struct {
+	FromUin    Uin    `json:"from_uin"`
+	MsgId      uint32 `json:"msg_id"`
+	Rkey       string `json:"rkey"`
+	Name       string `json:"name"`
+	Ip         string `json:"ip"`
+	Port       uint32 `json:"port"`
+	Size       uint32 `json:"size"`
+	ExpireTime uint32 `json:"expire_time"`
+	Time       uint32 `json:"time"`
+}
+
+type SystemMessageType string
+
+const (
+	AddedBuddySig   SystemMessageType = "added_buddy_sig"
+	AddedBuddyNosig                   = "added_buddy_nosig"
+	VerifyPassAdd                     = "verify_pass_add"
+	VerifyPass                        = "verify_pass"
+	VerifyRequired                    = "verify_required"
+	VerifyRejected                    = "verify_rejected"
+)
+
+// "poll_type": "system_message"
+type EventSystemMessage struct {
+	Type       SystemMessageType `json:"type"`
+	FromUin    Uin               `json:"from_uin"`
+	Stat       uint32            `json:"stat"`
+	ClientType ClientType        `json:"client_type"`
+	GroupId    GCode             `json:"group_id"`
+	Msg        string            `json:"msg"`
+	Account    Account           `json:"account"`
+	Uiuin      Uin               `json:"uiuin"`
+}
+
+type SysGroupMessageType string
+
+const (
+	GroupJoin             SysGroupMessageType = "group_join"
+	GroupLeave                                = "group_leave"
+	GroupRequestJoin                          = "group_request_join"
+	GroupRequestJoinAgree                     = "group_request_join_agree"
+	GroupRequestJoinDeny                      = "group_request_join_deny"
+	GroupAdminOp                              = "group_admin_op"
+	GroupCreate                               = "group_create"
+)
+
+// "poll_type": "sys_g_msg"
+type EventSysGroupMessage struct {
+	Type       SysGroupMessageType `json:"type"`
+	NewMember  string              `json:"new_member"`
+	OldMember  string              `json:"old_member"`
+	GCode      GCode               `json:"gcode"`
+	RequestUin Uin                 `json:"request_uin"`
+	OpType     string              `json:"op_type"` // 0,2:取消管理员 3:成为管理员 255:群主(转让)
+	// TOldMember  string `json:"t_old_member"`
+	// TGCode      GCode  `json:"t_gcode"`
+	// TNewMember  string `json:"t_new_member"`
+	// TRequestUin Uin    `json:"t_request_uin"`
 }

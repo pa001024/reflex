@@ -11,6 +11,7 @@ install:
   - go get -v github.com/pa001024/MoeWorker/util
   - go get -v github.com/pa001024/MoeWorker/util/ascgen
   - go get -v github.com/pa001024/MoeWorker/util/webqq
+  - go get -v github.com/pa001024/MoeWorker/util/weiyun
 script:
   - go test github.com/pa001024/MoeWorker/source
   - go test github.com/pa001024/MoeWorker/filter
@@ -18,3 +19,4 @@ script:
   - go test github.com/pa001024/MoeWorker/util
   - go test github.com/pa001024/MoeWorker/util/ascgen
   - go test github.com/pa001024/MoeWorker/util/webqq
+  - go test github.com/pa001024/MoeWorker/util/weiyun

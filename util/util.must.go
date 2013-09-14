@@ -5,8 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/url"
-	"path"
-	"runtime"
 )
 
 // 无错返回ParseUrl
@@ -36,16 +34,10 @@ func Try(e error) {
 
 // 输出调用者
 func lastCaller(msg string, deep int) string {
-	fup, file, line, _ := runtime.Caller(deep + 1)
-	fu := runtime.FuncForPC(fup)
-	return fmt.Sprintf("%s\n    at %s(%s:%v)", msg, fu.Name(), path.Base(file), line)
+	return fmt.Sprintf("%s\n    at %s", msg, LineNumberAt(deep+1))
 }
 
-func LastCaller(msg string) string {
-	return lastCaller(msg, 1)
-}
-
-// 抛出错误
+// 内部抛出错误
 func throw(msg string) {
 	panic(lastCaller(msg, 1))
 }

@@ -2,7 +2,7 @@ package source
 
 import (
 	"encoding/xml"
-	"github.com/pa001024/MoeWorker/util"
+	"github.com/pa001024/reflex/util"
 	"net/http"
 	"time"
 )

@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"strings"
 
-	"github.com/pa001024/MoeWorker/util"
+	"github.com/pa001024/reflex/util"
 )
 
 // 生成随机数

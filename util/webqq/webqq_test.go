@@ -3,7 +3,7 @@ package webqq
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/pa001024/MoeWorker/util"
+	"github.com/pa001024/reflex/util"
 	"testing"
 )
 

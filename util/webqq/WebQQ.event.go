@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/pa001024/MoeWorker/util"
+	"github.com/pa001024/reflex/util"
 )
 
 // 解析事件

@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/pa001024/MoeWorker/util"
+	"github.com/pa001024/reflex/util"
 )
 
 var (

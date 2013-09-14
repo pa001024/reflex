@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"os"
 
-	asc "github.com/pa001024/MoeWorker/util/ascgen"
+	asc "github.com/pa001024/reflex/util/ascgen"
 )
 
 const _CAPTCHA_URL = "http://captcha.qq.com/"

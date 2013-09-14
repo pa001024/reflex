@@ -10,7 +10,7 @@ import (
 	"io"
 	"os"
 
-	asc "github.com/pa001024/MoeWorker/util/ascgen"
+	asc "github.com/pa001024/reflex/util/ascgen"
 )
 
 func Show(iw io.Writer, r io.Reader, console asc.Console, useColor, simple bool) (err error) {

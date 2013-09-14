@@ -4,7 +4,7 @@ import (
 	// "encoding/json"
 
 	"code.google.com/p/leveldb-go/leveldb"
-	"github.com/pa001024/MoeWorker/util"
+	"github.com/pa001024/reflex/util"
 )
 
 // 储存好友信息的容器

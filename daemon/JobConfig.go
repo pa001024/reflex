@@ -2,10 +2,10 @@ package daemon
 
 import (
 	"encoding/json"
-	"github.com/pa001024/MoeWorker/filter"
-	"github.com/pa001024/MoeWorker/source"
-	"github.com/pa001024/MoeWorker/target"
-	"github.com/pa001024/MoeWorker/util"
+	"github.com/pa001024/reflex/filter"
+	"github.com/pa001024/reflex/source"
+	"github.com/pa001024/reflex/target"
+	"github.com/pa001024/reflex/util"
 	"io"
 )
 

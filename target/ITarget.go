@@ -39,7 +39,7 @@ func New(name string, b []byte) (rst ITarget) {
 		rst = dst
 		util.INFO.Logf("target.sina \"%s\" Loaded.", name)
 	case "qqweibo", "qq":
-		dst := &QQWeibo{}
+		dst := &TargetQQWeibo{}
 		json.Unmarshal(b, dst)
 		dst.Name = name
 		rst = dst

@@ -39,10 +39,6 @@ func (this *TargetQQWeibo) Send(src *source.FeedInfo) (rid string, e error) {
 func (this *TargetQQWeibo) GetMethod() []*TargetMethod { return this.Method }
 func (this *TargetQQWeibo) GetId() string              { return this.Name }
 
-const (
-	TQQ_OAUTH_VERSION = "2.a"
-)
-
 // 腾讯微博API
 type TargetQQWeibo struct {
 	ITarget

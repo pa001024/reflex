@@ -1,71 +1,13 @@
-package target
+package weibo
 
 import (
-	"bytes"
 	"encoding/json"
-	"github.com/pa001024/reflex/source"
-	"github.com/pa001024/reflex/util"
-	"io"
-	"mime/multipart"
-	"net/http"
-	"net/url"
-	"strconv"
 	"time"
+
+	"github.com/pa001024/reflex/util"
 )
 
-const (
-	TSINA_OAUTH_VERSION = "2.0"
-)
-
-func (this *SinaWeibo) Send(src *source.FeedInfo) (rid string, e error) {
-	util.DEBUG.Logf("SinaWeibo.Send(%v:%v,repost_id:%v,title:%v,content:%v,picurl:%v)", src.SourceId, src.Id, src.RepostId, src.Title, src.Content, src.PicUrl)
-	if src.RepostId != "" {
-		r, err := this.Repost(src.Content, src.RepostId)
-		if err != nil {
-			e = err
-			return
-		}
-		util.INFO.Log("[sina."+this.Name+"] Repost sent:", r.Url())
-		return util.ToString(r.Id), nil
-	} else if src.PicUrl != nil && len(src.PicUrl) > 0 {
-		if this.EnableUploadUrl {
-			r, err := this.UploadUrl(src.Content, src.PicUrl[0])
-			if err != nil {
-				e = err
-				return
-			}
-			util.INFO.Log("[sina.%s] UploadUrl sent: %v", this.Name, r.Url())
-			return util.ToString(r.Id), nil
-		} else {
-			pic := util.FetchImageAsStream(src.PicUrl[0])
-			r, err := this.Upload(src.Content, pic)
-			if err != nil {
-				e = err
-				return
-			}
-			util.INFO.Log("[sina.%s] Upload sent: %v", this.Name, r.Url())
-			return util.ToString(r.Id), nil
-		}
-	} else {
-		r, err := this.Update(src.Content)
-		if err != nil {
-			e = err
-			return
-		}
-		util.INFO.Log("Update sent:", r.Url())
-		return util.ToString(r.Id), nil
-	}
-	return
-}
-
-func (this *SinaWeibo) GetMethod() []*TargetMethod { return this.Method }
-func (this *SinaWeibo) GetId() string              { return this.Name }
-
-type SinaWeibo struct { // 新浪微博API 实现接口IWeibo
-	IWeibo
-	ITarget
-	Target
-
+type SinaWeibo struct {
 	AppKey      string    `json:"client_id"`     // AppKey
 	AppSecret   string    `json:"client_secret"` // AppSecret
 	CallbackUrl string    `json:"redirect_uri"`  // 验证URL
@@ -74,13 +16,21 @@ type SinaWeibo struct { // 新浪微博API 实现接口IWeibo
 
 	EnableUploadUrl bool `json:"enable_upload_url"` // 启用高级接口 直接使用URL上传
 }
+
+type RemoteError string
+
+func (this RemoteError) Error() string {
+	return "Remote Error: " + string(this)
+}
+
 type SinaWeiboError struct { // 错误
 	Request   string `json:"request"`    // 请求
 	ErrorCode string `json:"error_code"` // 错误代码
 	Error     string `json:"error"`      // 错误信息
 }
+
+// 微博
 type SinaWeiboStatus struct { // 微博 实现接口IStatus
-	IStatus
 	SinaWeiboError
 
 	CreatedAt       string           `json:"created_at"`                 // 创建时间
@@ -105,8 +55,17 @@ type SinaWeiboStatus struct { // 微博 实现接口IStatus
 	// InReplyToScreenName string        `json:"in_reply_to_screen_name"`    // 官方未支持
 	// Geo                 *WeiboGeo     `json:"geo"`                        // 地理位置信息(无需使用)
 }
+
+func (this *SinaWeiboStatus) Url() (urlText string) {
+	if this == nil || this.User == nil {
+		b, _ := json.Marshal(this)
+		util.ERROR.Log("Bad response!", string(b))
+	}
+	urlText = "http://weibo.com/" + this.User.Idstr + "/" + util.Base62Url(this.Mid)
+	return
+}
+
 type SinaWeiboUser struct { // 用户
-	IUser
 	// SinaWeiboError
 
 	Id               int64            `json:"id"`                 // UID
@@ -204,139 +163,4 @@ type SinaWeiboGeo struct { // 地理信息
 	Address      string `json:"address"`       // 所在的实际地址，可以为空
 	Pinyin       string `json:"pinyin"`        // 地址的汉语拼音，不是所有情况都会返回该字段
 	More         string `json:"more"`          // 更多信息，不是所有情况都会返回该字段
-}
-
-func NewSinaWeibo(client_id, client_secret, access_token, redirect_uri string) (this *SinaWeibo) {
-	this = &SinaWeibo{
-		AppKey:      client_id,
-		AppSecret:   client_secret,
-		Token:       access_token,
-		CallbackUrl: redirect_uri,
-	}
-	return
-}
-func (this *SinaWeibo) Authorize() (authurl string) {
-	return "https://api.weibo.com/oauth2/authorize?" + (url.Values{
-		"client_id":     {this.AppKey},
-		"redirect_uri":  {this.CallbackUrl},
-		"response_type": {"code"},
-		"display":       {"client"},
-	}).Encode()
-}
-func (this *SinaWeibo) AccessToken(code string) (token string) {
-	res, err := http.PostForm("https://api.weibo.com/oauth2/access_token",
-		url.Values{
-			"grant_type":    {"authorization_code"},
-			"client_id":     {this.AppKey},      // yourappkey
-			"client_secret": {this.AppSecret},   // yourpppsecret
-			"code":          {code},             // xxxxxxxxxxxxxx
-			"redirect_uri":  {this.CallbackUrl}, // http://some/weibocb.php
-		})
-	if err != nil {
-		util.ERROR.Log("Fail to AccessToken:", err)
-		return
-	}
-
-	defer res.Body.Close()
-	var body map[string]interface{}
-	json.NewDecoder(res.Body).Decode(&body)
-	if body["error"] != nil || body["access_token"] == nil {
-		util.ERROR.Log("Fail to AccessToken(Remote):", body["error"])
-		return
-	}
-	this.Token = body["access_token"].(string)
-	i, _ := strconv.Atoi(body["expires_in"].(string))
-	ex := time.Now().Add(time.Duration(i) * time.Second)
-	this.ExpiresIn = ex
-	return this.Token
-}
-func (this *SinaWeibo) PostStatus(api string, args *url.Values) (rst *SinaWeiboStatus, err error) {
-	args.Set("access_token", this.Token)
-	res, err := http.PostForm("https://api.weibo.com/2/statuses/"+api+".json", *args)
-	if err != nil {
-		util.ERROR.Log("Error on call", api+":", err)
-		return
-	}
-	defer res.Body.Close()
-	rst = &SinaWeiboStatus{}
-	json.NewDecoder(res.Body).Decode(rst)
-	if rst.Error != "" {
-		return nil, RemoteError(rst.Error)
-	}
-	return
-}
-func (this *SinaWeibo) Update(status string) (rst *SinaWeiboStatus, err error) {
-	rst, err = this.PostStatus("update", &url.Values{
-		"status": {status},
-	})
-	return
-}
-func (this *SinaWeibo) Repost(status string, oriId string) (rst *SinaWeiboStatus, err error) {
-	rst, err = this.PostStatus("repost", &url.Values{
-		"status": {status},
-		"id":     {oriId},
-	})
-	return
-}
-func (this *SinaWeibo) Destroy(oriId string) (rst *SinaWeiboStatus, err error) {
-	rst, err = this.PostStatus("destroy", &url.Values{
-		"id": {oriId},
-	})
-	return
-}
-func (this *SinaWeibo) Upload(status string, pic io.Reader) (rst *SinaWeiboStatus, err error) {
-	// multipart/form-data
-	var bpic bytes.Buffer
-	formdata := multipart.NewWriter(&bpic)
-	formdata.WriteField("access_token", this.Token)
-	formdata.WriteField("status", status)
-	picdata, _ := formdata.CreateFormFile("pic", "image.png")
-	io.Copy(picdata, pic)
-	formdata.Close()
-
-	res, err := http.Post("https://api.weibo.com/2/statuses/upload.json", formdata.FormDataContentType(), &bpic)
-	if err != nil {
-		util.ERROR.Log("Error on call upload :", err)
-		return
-	}
-	defer res.Body.Close()
-	rst = &SinaWeiboStatus{}
-	json.NewDecoder(res.Body).Decode(rst)
-	if rst.Error != "" {
-		return nil, RemoteError(rst.Error)
-	}
-	return
-}
-func (this *SinaWeibo) UploadUrl(status string, urlText string) (rst *SinaWeiboStatus, err error) {
-	rst, err = this.PostStatus("upload_url_text", &url.Values{
-		"status": {status},
-		"url":    {urlText},
-	})
-	return
-}
-func (this *SinaWeibo) ShortUrl(urlLong string) (rst string) {
-	res, err := http.Get("https://api.weibo.com/2/short_url/shorten.json?" + (url.Values{
-		"access_token": {this.Token},
-		"url_long":     {urlLong},
-	}).Encode())
-	if err != nil {
-		util.ERROR.Log("Error on call ShortUrl:", err)
-		return
-	}
-	defer res.Body.Close()
-	v := &SinaWeiboShortUrlResult{}
-	json.NewDecoder(res.Body).Decode(v)
-	if v.Error != "" {
-		util.ERROR.Log("Error on call ShortUrl[Remote]:", v.Error)
-		return urlLong
-	}
-	return
-}
-func (this *SinaWeiboStatus) Url() (urlText string) {
-	if this == nil || this.User == nil {
-		b, _ := json.Marshal(this)
-		util.ERROR.Log("Bad response!", string(b))
-	}
-	urlText = "http://weibo.com/" + this.User.Idstr + "/" + util.Base62Url(this.Mid)
-	return
 }

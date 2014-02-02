@@ -2,6 +2,8 @@ package util
 
 import (
 	"bytes"
+	"fmt"
+	"math/rand"
 )
 
 // 快速Hash
@@ -85,4 +87,20 @@ func IsArrayDuplicateOpt(arr []string, arr2 []string) bool {
 		}
 	}
 	return false
+}
+
+// 生成N位随机数字
+func Random(n int) (result string) {
+	for _, v := range rand.Perm(n) {
+		result += fmt.Sprint(v)
+	}
+	return
+}
+
+// 三元选择
+func Sw(condition bool, a, b interface{}) interface{} {
+	if condition {
+		return a
+	}
+	return b
 }

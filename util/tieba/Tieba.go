@@ -79,7 +79,7 @@ func (this *Tieba) GetTbs() (tbs string) {
 	return v.Tbs
 }
 
-func (this *Tieba) _CLIENT_ID() string { return "_client_id=wappc_1390753054162_175" } //"_client_id=" + this.client_id }
+func (this *Tieba) _CLIENT_ID() string { return "_client_id=" + this.client_id }
 func (this *Tieba) _BDUSS() string     { return "BDUSS=" + this.BDUSS }
 func (this *Tieba) _TBS() string       { return "tbs=" + this.tbs }
 func (this *Tieba) _COMMON(a []string) []string {

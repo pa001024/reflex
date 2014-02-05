@@ -47,7 +47,14 @@ func Throw(msg string) {
 	panic(lastCaller(msg, 2))
 }
 
-// 供给panic后恢复
+// 供给panic后恢复 (部分内部错误无法恢复)
+// exmaple:
+// func xx() (err error){
+//   defer util.Catch(&err)
+//   ...
+//   util.Try(err)
+// }
+//
 func Catch(err ...*error) {
 	if e := recover(); e != nil {
 		es := fmt.Sprint(e)

@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-// 当前IP的缓存, 将值设置为"" 再使用GetIP()可返回最新结果
+// 当前IP的缓存
 var IP string
 
 // 获取当前IP, 有缓存
@@ -15,6 +15,12 @@ func GetIP() string {
 	if IP != "" {
 		return IP
 	}
+	IP, _ = CheckIP()
+	return IP
+}
+
+// 获取当前IP, 无缓存
+func FlushIP() string {
 	IP, _ = CheckIP()
 	return IP
 }

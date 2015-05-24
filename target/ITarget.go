@@ -33,13 +33,13 @@ func New(name string, b []byte) (rst ITarget) {
 	switch obj.Type {
 	default:
 	case "sina", "weibo", "sinaweibo":
-		dst := &SinaWeibo{}
+		dst := &TargetSinaWeibo{}
 		json.Unmarshal(b, dst)
 		dst.Name = name
 		rst = dst
 		util.INFO.Logf("target.sina \"%s\" Loaded.", name)
 	case "qqweibo", "qq":
-		dst := &QQWeibo{}
+		dst := &TargetQQWeibo{}
 		json.Unmarshal(b, dst)
 		dst.Name = name
 		rst = dst

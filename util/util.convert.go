@@ -46,8 +46,8 @@ func ToInt64(src string) (rst int64) {
 }
 
 // 转换到字符串
-func ToString(src interface{}) string {
-	return fmt.Sprint(src)
+func ToString(src ...interface{}) string {
+	return fmt.Sprint(src...)
 }
 
 // 编码hex

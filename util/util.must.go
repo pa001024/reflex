@@ -26,9 +26,9 @@ func MustReadAll(r io.Reader) []byte {
 }
 
 // 出错崩溃
-func Try(e error) {
-	if e != nil {
-		Throw(e.Error())
+func Try(err error) {
+	if err != nil {
+		Throw(err.Error())
 	}
 }
 

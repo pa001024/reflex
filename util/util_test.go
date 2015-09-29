@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"testing"
@@ -93,4 +94,28 @@ func TestUint64BEString(t *testing.T) {
 	if de != v || r != `\x00\x00\x00\x00\xa3\x09\x22\xb9` {
 		t.Fail()
 	}
+}
+
+func TestGetIPLocal(t *testing.T) {
+	fmt.Println(GetIPLocal())
+}
+
+func TestAESCBCStringX(t *testing.T) {
+	origintext := "123456"
+	key := Md5("WTF?MASK")
+	opwd := AESCBCStringX(key, []byte(origintext), true)
+	if opwd != "3CCBEDF2AB9727A7D3CF80425F1EE936" {
+		t.Log(opwd)
+		t.Fail()
+	}
+	bin, _ := hex.DecodeString(opwd)
+	rpwd := string(AESCBC(key, bin, false))
+	if rpwd != "123456" {
+		t.Log(rpwd)
+		t.Fail()
+	}
+}
+
+func TestJsCurrentTime(t *testing.T) {
+	fmt.Println(JsCurrentTime())
 }

@@ -24,6 +24,11 @@ func ToJson(args ...interface{}) string {
 	return string(bin)
 }
 
+// 返回当前秒数
+func JsCurrentSecond() int64 {
+	return time.Now().UnixNano() / 1e9
+}
+
 // 返回JS风格的当前时间字符串
 func JsCurrentTime() string {
 	return fmt.Sprint(time.Now().UnixNano() / 1e6)

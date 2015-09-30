@@ -1,5 +1,5 @@
 language: go
-go: 1.2
+go: 1.5
 services:
   #- memcache # 
 install:
@@ -10,13 +10,9 @@ install:
   - go get -v github.com/pa001024/reflex/target
   - go get -v github.com/pa001024/reflex/util
   - go get -v github.com/pa001024/reflex/util/ascgen
-  - go get -v github.com/pa001024/reflex/util/webqq
-  - go get -v github.com/pa001024/reflex/util/weiyun
 script:
   - go test github.com/pa001024/reflex/source
   - go test github.com/pa001024/reflex/filter
   - go test github.com/pa001024/reflex/target
   - go test github.com/pa001024/reflex/util
   - go test github.com/pa001024/reflex/util/ascgen
-  - go test github.com/pa001024/reflex/util/webqq
-  - go test github.com/pa001024/reflex/util/weiyun

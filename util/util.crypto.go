@@ -10,7 +10,7 @@ import (
 )
 
 // MD5 返回binary结果
-func Md5(src string) (rst []byte) {
+func MD5(src string) (rst []byte) {
 	h := md5.New()
 	io.WriteString(h, src)
 	rst = h.Sum(nil)
@@ -18,18 +18,14 @@ func Md5(src string) (rst []byte) {
 }
 
 // MD5 返回 hex结果
-func Md5String(src string) (rst string) {
-	h := md5.New()
-	io.WriteString(h, src)
-	rst = fmt.Sprintf("%x", h.Sum(nil))
+func MD5String(src string) (rst string) {
+	rst = fmt.Sprintf("%x", MD5(src))
 	return
 }
 
 // MD5 返回 hex结果大写
-func Md5StringX(src string) (rst string) {
-	h := md5.New()
-	io.WriteString(h, src)
-	rst = fmt.Sprintf("%X", h.Sum(nil))
+func MD5StringX(src string) (rst string) {
+	rst = fmt.Sprintf("%X", MD5(src))
 	return
 }
 
@@ -50,32 +46,14 @@ func AES(byteKey, src []byte, isEncode bool) (rst []byte) {
 
 // AES 返回 hex结果
 func AESString(byteKey, src []byte, isEncode bool) (rst string) {
-	dst := make([]byte, len(src))
-	c, err := aes.NewCipher(byteKey)
-	if err != nil {
-		return
-	}
-	if isEncode {
-		c.Encrypt(dst, src)
-	} else {
-		c.Decrypt(dst, src)
-	}
+	dst := AES(byteKey, src, isEncode)
 	rst = fmt.Sprintf("%x", dst)
 	return
 }
 
 // AES 返回 hex结果大写
 func AESStringX(byteKey, src []byte, isEncode bool) (rst string) {
-	dst := make([]byte, len(src))
-	c, err := aes.NewCipher(byteKey)
-	if err != nil {
-		return
-	}
-	if isEncode {
-		c.Encrypt(dst, src)
-	} else {
-		c.Decrypt(dst, src)
-	}
+	dst := AES(byteKey, src, isEncode)
 	rst = fmt.Sprintf("%X", dst)
 	return
 }
@@ -109,53 +87,15 @@ func AESCBC(byteKey, src []byte, isEncode bool) (rst []byte) {
 
 // AES-CBC 返回 hex结果
 func AESCBCString(byteKey, src []byte, isEncode bool) (rst string) {
-	b, err := aes.NewCipher(byteKey)
-	if err != nil {
-		return
-	}
-	iv := byteKey[:aes.BlockSize]
-	var cc cipher.BlockMode
-	var nsrc []byte
-	if isEncode {
-		cc = cipher.NewCBCEncrypter(b, iv)
-		nsrc = PKCS5Padding(src, aes.BlockSize)
-	} else {
-		cc = cipher.NewCBCDecrypter(b, iv)
-		nsrc = src
-	}
-	dst := make([]byte, len(nsrc))
-	cc.CryptBlocks(dst, nsrc)
-	if isEncode {
-		rst = fmt.Sprintf("%x", dst)
-	} else {
-		rst = fmt.Sprintf("%x", PKCS5UnPadding(dst))
-	}
+	dst := AESCBC(byteKey, src, isEncode)
+	rst = fmt.Sprintf("%x", dst)
 	return
 }
 
 // AES-CBC 返回 hex结果大写
 func AESCBCStringX(byteKey, src []byte, isEncode bool) (rst string) {
-	b, err := aes.NewCipher(byteKey)
-	if err != nil {
-		return
-	}
-	iv := byteKey[:aes.BlockSize]
-	var cc cipher.BlockMode
-	var nsrc []byte
-	if isEncode {
-		cc = cipher.NewCBCEncrypter(b, iv)
-		nsrc = PKCS5Padding(src, aes.BlockSize)
-	} else {
-		cc = cipher.NewCBCDecrypter(b, iv)
-		nsrc = src
-	}
-	dst := make([]byte, len(nsrc))
-	cc.CryptBlocks(dst, nsrc)
-	if isEncode {
-		rst = fmt.Sprintf("%X", dst)
-	} else {
-		rst = fmt.Sprintf("%X", PKCS5UnPadding(dst))
-	}
+	dst := AESCBC(byteKey, src, isEncode)
+	rst = fmt.Sprintf("%X", dst)
 	return
 }
 
